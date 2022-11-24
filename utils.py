@@ -21,17 +21,22 @@ def validate_emoji_name(name: str):
     return re.match(r"^[a-zA-Z0-9_]+$", name) is not None
 
 
-def validate_image_url(url: str):
+def validate_image_url(url: str,type):
     """Check if a string is a valid image URL
 
     Args:
         url (str): URL to check
+        type (str): type "emoji" or "sticker"
 
     Returns:
         boolean: True if valid, False if not
     """
-    return re.match(r"^https?://.+?\.(png|jpg|jpeg|gif)$", url) is not None
-
+    if type == "emoji":
+        return re.match(r"^https?://.+?\.(png|jpg|jpeg|gif)$", url) is not None
+    elif type == "sticker":
+        return re.match(r"^https?://.+?\.(png|apng)$", url) is not None
+    else:
+        raise ValueError("type must be emoji or sticker")
 
 def get_poll_result(message: discord.Message):
     """Get the result of a poll

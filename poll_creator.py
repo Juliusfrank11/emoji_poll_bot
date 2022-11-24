@@ -85,8 +85,8 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
         await ctx.delete()
         return
 
-    if not validate_image_url(emoji_url):
-        await ctx.send("Invalid image URL, url must end in png, jpg, jpeg, or gif")
+    if not validate_image_url(emoji_url, 'emoji'):
+        await ctx.send("Invalid image URL, emoji url must end in png, jpg, jpeg, or gif")
         await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
         await ctx.delete()
         return
@@ -109,12 +109,12 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
 
 @bot.command(
     name="add-sticker",
-    description="Make a poll to add an sticker to the server",
+    description="Make a poll to add a sticker to the server",
     options=[
         interactions.Option(
             type=interactions.OptionType.STRING,
             name="url",
-            description="URL of image to be made into an sticker",
+            description="URL of image to be made into a sticker",
             focused=False,
             required=True,
         ),
@@ -146,8 +146,8 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
         await ctx.delete()
         return
 
-    if not validate_image_url(sticker_url):
-        await ctx.send("Invalid image URL, url must end in png, jpg, jpeg, or gif")
+    if not validate_image_url(sticker_url,'sticker'):
+        await ctx.send("Invalid image URL, stick url must end in png or apng")
         await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
         await ctx.delete()
         return
