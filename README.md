@@ -7,6 +7,8 @@ The bot uses slash commands to create polls.
 - `/add-sticker`
 - `/delete-sticker`
 
+Various settings for the bot can be edited in `config.py`
+
 # Setup
 
 After cloning the repo, make a python virtual environment called `venv`
