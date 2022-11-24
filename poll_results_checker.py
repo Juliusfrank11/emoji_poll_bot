@@ -25,6 +25,11 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
+# clean existing images
+for file_name in os.listdir():
+    if file_name.startswith(TEMP_IMAGE_FILE_NAME):
+        os.remove(file_name)
+
 def get_active_polls_list_from_memory():
     """gets a list of (guild_id, channel_id, message_id, poll_type) tuples for each active poll in memory
 
@@ -65,23 +70,26 @@ async def on_ready():
                             request = requests.get(image_url)
                             if request.status_code == 200:
                                 name = get_emoji_name_from_poll_message(message)
+                                
                                 # resizing image if necessary
-                                if not validate_image_size_from_url(image_url):
-                                    image = BytesIO() # empty image
-                                    if url_is_gif(image_url):
-                                        resize_image_from_url(image_url,MAX_IMAGE_SIZE).save(image, format="GIF")
-                                    else:
-                                        resize_image_from_url(image_url,MAX_IMAGE_SIZE).save(image, format="PNG")
-                                else:
-                                    image = BytesIO(request.content)
+                                make_and_resize_image_from_url(image_url,MAX_IMAGE_SIZE,MAX_IMAGE_FILE_SIZE,TEMP_IMAGE_FILE_NAME)
+                                
+                                # getting image bytes
+                                for file in os.listdir():
+                                    if file.startswith('adding_image_temp.'):
+                                        temp_image_file_name = file
+                                        f =  open(temp_image_file_name, 'rb')
+                                        image = f.read()
+                                        f.close()
+                                        break
                                 
                                 # adding emoji
                                 if poll_type.endswith("emoji"):
                                     new_emoji = await channel.guild.create_custom_emoji(
-                                        name=name, image=image.read()
+                                        name=name, image=image
                                     )
                                     await channel.send(
-                                        "Emoji added: " + str(new_emoji),
+                                        f"Emoji added: {str(new_emoji)}" ,
                                         reference=message,
                                     )
                                 # add sticker
@@ -91,11 +99,11 @@ async def on_ready():
                                         description="sticker automatically added by poll",
                                         emoji="🤖", # not sure what the point of this attribute is, but it's required
                                         file=discord.File(
-                                            fp=image, filename="sticker.png"
+                                            fp=temp_image_file_name, filename='sticker.png'
                                         ),
                                     )
                                     await channel.send(
-                                        "Sticker added: " + str(name),
+                                        f"Sticker added: :{name}:",
                                         stickers=[new_sticker],
                                         reference=message,
                                     )
@@ -105,6 +113,7 @@ async def on_ready():
                                     + str(request.status_code),
                                     reference=message,
                                 )
+                            os.remove(temp_image_file_name)
                         # deleting emoji/sticker
                         if poll_type.startswith("delete"):
                             name = get_emoji_name_from_poll_message(message)

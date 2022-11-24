@@ -91,11 +91,6 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
         await ctx.delete()
         return
     
-    if not validate_image_size_from_url(emoji_url):
-        await ctx.send("Image must be less than 2 MB")
-        await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
-        await ctx.delete()
-        return
 
     embed = interactions.Embed(
         title=f"POLL FOR NEW EMOJI: :{emoji_name}:",
@@ -157,11 +152,6 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
         await ctx.delete()
         return
     
-    if not validate_image_size_from_url(sticker_url):
-        await ctx.send("Image must be less than 2 MB")
-        await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
-        await ctx.delete()
-        return
 
     embed = interactions.Embed(
         title=f"POLL FOR NEW STICKER: :{sticker_name}:",
