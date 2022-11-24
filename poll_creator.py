@@ -85,8 +85,8 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
         await ctx.delete()
         return
 
-    if not validate_image_url(emoji_url, 'emoji'):
-        await ctx.send("Invalid image URL, emoji url must end in png, jpg, jpeg, or gif")
+    if not validate_image_url(emoji_url):
+        await ctx.send("Invalid image URL, emoji url must end in png, jpg, or jpeg (Animated Emojis are not currently supported)")
         await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
         await ctx.delete()
         return
@@ -146,8 +146,8 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
         await ctx.delete()
         return
 
-    if not validate_image_url(sticker_url,'sticker'):
-        await ctx.send("Invalid image URL, stick url must end in png or apng")
+    if not validate_image_url(sticker_url):
+        await ctx.send("Invalid image URL, stick url must end in png, jpg, or jpeg (Animated stickers are not currently supported)")
         await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
         await ctx.delete()
         return

@@ -21,7 +21,7 @@ def validate_emoji_name(name: str):
     return re.match(r"^[a-zA-Z0-9_]+$", name) is not None
 
 
-def validate_image_url(url: str,type):
+def validate_image_url(url: str):
     """Check if a string is a valid image URL
 
     Args:
@@ -31,12 +31,7 @@ def validate_image_url(url: str,type):
     Returns:
         boolean: True if valid, False if not
     """
-    if type == "emoji":
-        return re.match(r"^https?://.+?\.(png|jpg|jpeg|gif)$", url) is not None
-    elif type == "sticker":
-        return re.match(r"^https?://.+?\.(png|apng)$", url) is not None
-    else:
-        raise ValueError("type must be emoji or sticker")
+    return re.match(r"^https?://.+?\.(png|jpg|jpeg)$", url) is not None
 
 def get_poll_result(message: discord.Message):
     """Get the result of a poll
@@ -75,7 +70,7 @@ def get_emoji_name_from_poll_message(message: discord.Message):
     return message.embeds[0].title.split(":")[2]
 
 
-def get_pillow_image_file_format_from_url(url):
+def get_pillow_image_file_format_from_url(url): # UNUSED
     """Get the file extension of an image from its URL, without the period, in uppercase
 
     Args:
@@ -100,22 +95,19 @@ def make_and_resize_image_from_url(url, max_size_px, max_size_bytes, output_file
         output_file_name (str): name of output file that temporary image will be saved as
     """
     image_bytes = BytesIO(requests.get(url).content)
-    if url_is_gif(url):
-        file_format = "GIF"
-    else:
-        file_format = 'PNG'
-    full_output_file_name = output_file_name + "." + file_format.lower()
-    Image.open(image_bytes).save(output_file_name + '.' + file_format.lower(), format = file_format)
+
+    full_output_file_name = output_file_name + ".png"
+    Image.open(image_bytes).save(full_output_file_name, format = 'PNG')
     img = Image.open(full_output_file_name)
     
     while img.width * img.height > max_size_px or os.path.getsize(full_output_file_name) > max_size_bytes:
         img = img.resize((img.width // 2, img.height // 2))
-        img.save(full_output_file_name, format = file_format)
+        img.save(full_output_file_name, format = 'PNG')
         img = Image.open(full_output_file_name) # just to be safe that file and the object are in sync
     
-    img.save("adding_image_temp." + file_format.lower(), format = file_format)
+    img.save(full_output_file_name, format = 'PNG')
 
-def url_is_gif(url):
+def url_is_gif(url): # UNUSED
     """Check if a URL is a GIF
 
     Args:

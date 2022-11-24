@@ -155,7 +155,10 @@ async def on_ready():
                     )
             except discord.errors.NotFound:
                 logging.info(f"Channel {channel} not found, skipping")
-                os.remove(f"active_polls/{guild_id}/{channel}")
+                try:
+                    os.remove(f"active_polls/{guild_id}/{channel}")
+                except FileNotFoundError:
+                    pass
         await asyncio.sleep(WAIT_TIME_BETWEEN_CHECKS)
 
 
