@@ -10,7 +10,7 @@ The bot uses slash commands to create polls.
 Various settings for the bot can be edited in `config.py`
 
 # Setup
-You'll need to create a `.TOKEN` file (or whatever you put for `TOKEN_FILE_NAME` in `config.py` with your [discord bot token](https://www.writebots.com/discord-bot-token/). Don't share this with anyone!
+You'll need to create a `.TOKEN` file (or whatever you put for `TOKEN_FILE_NAME` in `config.py`) with your [discord bot token](https://www.writebots.com/discord-bot-token/). Don't share this with anyone!
 
 After cloning the repo, make a python virtual environment and install the requirements
 
