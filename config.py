@@ -5,3 +5,5 @@ POLL_NO_EMOJI = "❌"  # emoji to use for the poll's "no" option
 TOKEN_FILE_NAME = ".TOKEN"  # file containing the bot's token
 WAIT_TIME_BETWEEN_CHECKS = 1  # Time between checks for poll results, in seconds
 DELETE_NOTIFICATIONS_AFTER = 5  # Time to wait before deleting notifications, in seconds
+MAX_IMAGE_SIZE = 33554432 # Max area of image, set by discord so DON'T CHANGE THIS
+MAX_IMAGE_FILE_SIZE = 2048*1000 # Max file size of image (2 MB), set by discord so DON'T CHANGE THIS

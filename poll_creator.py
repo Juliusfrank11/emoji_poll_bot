@@ -1,8 +1,10 @@
-import interactions
-from utils import *
-from config import *
 import asyncio
 import os
+
+import interactions
+
+from config import *
+from utils import *
 
 # Setup
 ## read token from file
@@ -88,6 +90,12 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
         await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
         await ctx.delete()
         return
+    
+    if not validate_image_size_from_url(emoji_url):
+        await ctx.send("Image must be less than 2 MB")
+        await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
+        await ctx.delete()
+        return
 
     embed = interactions.Embed(
         title=f"POLL FOR NEW EMOJI: :{emoji_name}:",
@@ -148,6 +156,12 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
         await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
         await ctx.delete()
         return
+    
+    if not validate_image_size_from_url(sticker_url):
+        await ctx.send("Image must be less than 2 MB")
+        await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
+        await ctx.delete()
+        return
 
     embed = interactions.Embed(
         title=f"POLL FOR NEW STICKER: :{sticker_name}:",
@@ -163,18 +177,19 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
     poll_channel = await ctx.get_channel()
     save_poll_to_memory(poll_channel.guild_id, poll_channel.id, poll.id, "addsticker")
 
+
 @bot.command(
     name="delete-emoji",
     description="Make a poll to delete an emoji from the server",
     options=[
         interactions.Option(
-            type = interactions.OptionType.STRING,
-            name = "emoji-name",
-            description = "emoji name, WITHOUT the colons",
-            focused = False,
-            required = True,
+            type=interactions.OptionType.STRING,
+            name="emoji-name",
+            description="emoji name, WITHOUT the colons",
+            focused=False,
+            required=True,
         )
-    ]
+    ],
 )
 async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
     """Create a poll to delete an emoji from the server
@@ -185,18 +200,35 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
         emoji_name (str): name of emoji to delete
     """
     emoji_name = kwargs["emoji-name"]
-    
-    existing_emojis = await ctx.get_guild().emojis
+
+    # check if emoji exists and get emoji object if it does
+    guild = await ctx.get_guild()
+    existing_emojis = guild.emojis
     existing_emoji_names = [emoji.name for emoji in existing_emojis]
     if emoji_name not in existing_emoji_names:
         await ctx.send("Emoji does not exist on this server")
         await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
         await ctx.delete()
         return
+    else:
+        for existing_emoji in existing_emojis:
+            if existing_emoji.name == emoji_name:
+                emoji = existing_emoji
+                break
+    
+    # get string representation of emoji
+    if emoji.animated:
+        animated_str = "a"
+    else:
+        animated_str = ""
+    emoji_str = f"<{animated_str}:{emoji.name}:{emoji.id}>"
 
     embed = interactions.Embed(
         title=f"POLL FOR DELETING EMOJI: :{emoji_name}:",
-        description="Should we delete this emoji?",
+        description=f"Should we delete this emoji? {emoji_str} (full size version below this poll)",
+    )
+    embed.set_image(
+        url=f"https://cdn.discordapp.com/emojis/{emoji.id}.png?size=128&quality=lossless"
     )
     poll = await ctx.send(embeds=embed)
     await poll.create_reaction(POLL_YES_EMOJI)
@@ -206,20 +238,21 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
     poll_channel = await ctx.get_channel()
     save_poll_to_memory(poll_channel.guild_id, poll_channel.id, poll.id, "deleteemoji")
 
+
 @bot.command(
     name="delete-sticker",
     description="Make a poll to delete an sticker from the server",
     options=[
         interactions.Option(
-            type = interactions.OptionType.STRING,
-            name = "sticker-name",
-            description = "sticker name, WITHOUT the colons, EXACTLY as it appears in the sticker list",
-            focused = False,
-            required = True,
+            type=interactions.OptionType.STRING,
+            name="sticker-name",
+            description="sticker name, WITHOUT the colons, EXACTLY as it appears in the sticker list",
+            focused=False,
+            required=True,
         )
-    ]
+    ],
 )
-async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
+async def delete_sticker(ctx: interactions.CommandContext, **kwargs):
     """Create a poll to delete an emoji from the server
 
 
@@ -228,26 +261,36 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
         sticker_name (str): name of sticker to delete
     """
     sticker_name = kwargs["sticker-name"]
-    
-    existing_stickers = await ctx.get_guild().stickers
+
+    # check if sticker exists and get sticker object if it does
+    guild = await ctx.get_guild()
+    existing_stickers = guild.stickers
     existing_sticker_names = [emoji.name for emoji in existing_stickers]
     if sticker_name not in existing_sticker_names:
         await ctx.send("sticker does not exist on this server")
         await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
         await ctx.delete()
         return
+    else:
+        for existing_sticker in existing_stickers:
+            if existing_sticker.name == sticker_name:
+                sticker = existing_sticker
+                break
 
     embed = interactions.Embed(
         title=f"POLL FOR DELETING STICKER: :{sticker_name}:",
         description="Should we delete this sticker?",
     )
+    embed.set_image(url=f"https://cdn.discordapp.com/stickers/{sticker.id}.png")
     poll = await ctx.send(embeds=embed)
     await poll.create_reaction(POLL_YES_EMOJI)
     await poll.create_reaction(POLL_NO_EMOJI)
 
     # save poll to active_polls directory
     poll_channel = await ctx.get_channel()
-    save_poll_to_memory(poll_channel.guild_id, poll_channel.id, poll.id, "deletesticker")
+    save_poll_to_memory(
+        poll_channel.guild_id, poll_channel.id, poll.id, "deletesticker"
+    )
 
 
 bot.start()

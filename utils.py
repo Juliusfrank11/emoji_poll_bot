@@ -1,8 +1,11 @@
+from io import BytesIO
 import re
+
 import discord
-from config import *
+import requests
 from PIL import Image
-import os
+
+from config import *
 
 
 def validate_emoji_name(name: str):
@@ -67,8 +70,8 @@ def get_emoji_name_from_poll_message(message: discord.Message):
     return message.embeds[0].title.split(":")[2]
 
 
-def get_image_file_extension_from_url(url):
-    """Get the file extension of an image from its URL, with . in front
+def get_pillow_image_file_format_from_url(url):
+    """Get the file extension of an image from its URL, without the period, in uppercase
 
     Args:
         url (str): URL of image
@@ -76,4 +79,54 @@ def get_image_file_extension_from_url(url):
     Returns:
         str: file extension of image
     """
-    return "." + url.split(".")[-1]
+    file_format = url.split(".")[-1].upper()
+    if file_format == "JPG":
+        file_format = "JPEG"
+    return file_format
+
+def validate_image_size_from_url(url):
+    """Check if an image is larger than the maximum allowed size
+
+    Args:
+        url (str): URL of image
+
+    Returns:
+        boolean: True if image is too large, False if not
+    """
+    image_bytes = BytesIO(requests.get(url).content)
+    image = Image.open(image_bytes)
+    
+    if image_bytes.getbuffer().nbytes < MAX_IMAGE_FILE_SIZE and image.width * image.height < MAX_IMAGE_SIZE:
+        return True
+    else:
+        return False
+
+def resize_image_from_url(url, max_size):
+    """Resize an image to a maximum size
+
+    Args:
+        url (str): URL of image
+        max_size (int): maximum size of image
+
+    Returns:
+        PIL.Image: resized image
+    """
+    image_bytes = BytesIO(requests.get(url).content)
+    image = Image.open(image_bytes)
+    width, height = image.size
+    if width > height:
+        ratio = max_size / width
+    else:
+        ratio = max_size / height
+    return image.resize((int(width * ratio), int(height * ratio)))
+
+def url_is_gif(url):
+    """Check if a URL is a GIF
+
+    Args:
+        url (str): URL to check
+
+    Returns:
+        boolean: True if GIF, False if not
+    """
+    return url.split(".")[-1].lower() == "gif"
