@@ -31,7 +31,7 @@ def validate_image_url(url: str):
     Returns:
         boolean: True if valid, False if not
     """
-    return re.match(r"^https?://.+?\.(png|jpg|jpeg)$", url) is not None
+    return re.match(r"^https?://.+?\.(png|jpg|jpeg|PNG|JPG|JPEG)$", url) is not None
 
 
 def get_poll_result(message: discord.Message):
