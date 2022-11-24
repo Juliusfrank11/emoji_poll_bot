@@ -86,11 +86,12 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
         return
 
     if not validate_image_url(emoji_url):
-        await ctx.send("Invalid image URL, emoji url must end in png, jpg, or jpeg (Animated Emojis are not currently supported)")
+        await ctx.send(
+            "Invalid image URL, emoji url must end in png, jpg, or jpeg (Animated Emojis are not currently supported)"
+        )
         await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
         await ctx.delete()
         return
-    
 
     embed = interactions.Embed(
         title=f"POLL FOR NEW EMOJI: :{emoji_name}:",
@@ -147,11 +148,12 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
         return
 
     if not validate_image_url(sticker_url):
-        await ctx.send("Invalid image URL, stick url must end in png, jpg, or jpeg (Animated stickers are not currently supported)")
+        await ctx.send(
+            "Invalid image URL, stick url must end in png, jpg, or jpeg (Animated stickers are not currently supported)"
+        )
         await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
         await ctx.delete()
         return
-    
 
     embed = interactions.Embed(
         title=f"POLL FOR NEW STICKER: :{sticker_name}:",
@@ -205,7 +207,7 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
             if existing_emoji.name == emoji_name:
                 emoji = existing_emoji
                 break
-    
+
     # get string representation of emoji
     if emoji.animated:
         animated_str = "a"

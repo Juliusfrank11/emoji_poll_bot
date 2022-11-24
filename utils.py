@@ -1,6 +1,6 @@
-from io import BytesIO
 import os
 import re
+from io import BytesIO
 
 import discord
 import requests
@@ -32,6 +32,7 @@ def validate_image_url(url: str):
         boolean: True if valid, False if not
     """
     return re.match(r"^https?://.+?\.(png|jpg|jpeg)$", url) is not None
+
 
 def get_poll_result(message: discord.Message):
     """Get the result of a poll
@@ -70,7 +71,7 @@ def get_emoji_name_from_poll_message(message: discord.Message):
     return message.embeds[0].title.split(":")[2]
 
 
-def get_pillow_image_file_format_from_url(url): # UNUSED
+def get_pillow_image_file_format_from_url(url):  # UNUSED
     """Get the file extension of an image from its URL, without the period, in uppercase
 
     Args:
@@ -85,7 +86,9 @@ def get_pillow_image_file_format_from_url(url): # UNUSED
     return file_format
 
 
-def make_and_resize_image_from_url(url, max_size_px, max_size_bytes, output_file_name = TEMP_IMAGE_FILE_NAME):
+def make_and_resize_image_from_url(
+    url, max_size_px, max_size_bytes, output_file_name=TEMP_IMAGE_FILE_NAME
+):
     """Resize an image to a maximum size
 
     Args:
@@ -97,17 +100,23 @@ def make_and_resize_image_from_url(url, max_size_px, max_size_bytes, output_file
     image_bytes = BytesIO(requests.get(url).content)
 
     full_output_file_name = output_file_name + ".png"
-    Image.open(image_bytes).save(full_output_file_name, format = 'PNG')
+    Image.open(image_bytes).save(full_output_file_name, format="PNG")
     img = Image.open(full_output_file_name)
-    
-    while img.width * img.height > max_size_px or os.path.getsize(full_output_file_name) > max_size_bytes:
-        img = img.resize((img.width // 2, img.height // 2))
-        img.save(full_output_file_name, format = 'PNG')
-        img = Image.open(full_output_file_name) # just to be safe that file and the object are in sync
-    
-    img.save(full_output_file_name, format = 'PNG')
 
-def url_is_gif(url): # UNUSED
+    while (
+        img.width * img.height > max_size_px
+        or os.path.getsize(full_output_file_name) > max_size_bytes
+    ):
+        img = img.resize((img.width // 2, img.height // 2))
+        img.save(full_output_file_name, format="PNG")
+        img = Image.open(
+            full_output_file_name
+        )  # just to be safe that file and the object are in sync
+
+    img.save(full_output_file_name, format="PNG")
+
+
+def url_is_gif(url):  # UNUSED
     """Check if a URL is a GIF
 
     Args:

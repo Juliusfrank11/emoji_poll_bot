@@ -30,6 +30,7 @@ for file_name in os.listdir():
     if file_name.startswith(TEMP_IMAGE_FILE_NAME):
         os.remove(file_name)
 
+
 def get_active_polls_list_from_memory():
     """gets a list of (guild_id, channel_id, message_id, poll_type) tuples for each active poll in memory
 
@@ -42,16 +43,19 @@ def get_active_polls_list_from_memory():
         for channel_id in os.listdir(f"active_polls/{guild_id}"):
             for poll in os.listdir(f"active_polls/{guild_id}/{channel_id}"):
                 poll_id, poll_type = poll.split("_")
-                combos.append(
-                    (int(guild_id), int(channel_id), int(poll_id), poll_type)
-                )
+                combos.append((int(guild_id), int(channel_id), int(poll_id), poll_type))
     return combos
 
 
 @client.event
 async def on_ready():
     while True:
-        for guild_id, channel_id, message_id, poll_type in get_active_polls_list_from_memory():
+        for (
+            guild_id,
+            channel_id,
+            message_id,
+            poll_type,
+        ) in get_active_polls_list_from_memory():
             try:
                 channel = client.get_channel(channel_id)
                 message = await channel.fetch_message(message_id)
@@ -70,26 +74,31 @@ async def on_ready():
                             request = requests.get(image_url)
                             if request.status_code == 200:
                                 name = get_emoji_name_from_poll_message(message)
-                                
+
                                 # resizing image if necessary
-                                make_and_resize_image_from_url(image_url,MAX_IMAGE_SIZE,MAX_IMAGE_FILE_SIZE,TEMP_IMAGE_FILE_NAME)
-                                
+                                make_and_resize_image_from_url(
+                                    image_url,
+                                    MAX_IMAGE_SIZE,
+                                    MAX_IMAGE_FILE_SIZE,
+                                    TEMP_IMAGE_FILE_NAME,
+                                )
+
                                 # getting image bytes
                                 for file in os.listdir():
-                                    if file.startswith('adding_image_temp.'):
+                                    if file.startswith("adding_image_temp."):
                                         temp_image_file_name = file
-                                        f =  open(temp_image_file_name, 'rb')
+                                        f = open(temp_image_file_name, "rb")
                                         image = f.read()
                                         f.close()
                                         break
-                                
+
                                 # adding emoji
                                 if poll_type.endswith("emoji"):
                                     new_emoji = await channel.guild.create_custom_emoji(
                                         name=name, image=image
                                     )
                                     await channel.send(
-                                        f"Emoji added: {str(new_emoji)}" ,
+                                        f"Emoji added: {str(new_emoji)}",
                                         reference=message,
                                     )
                                 # add sticker
@@ -97,9 +106,10 @@ async def on_ready():
                                     new_sticker = await channel.guild.create_sticker(
                                         name=name,
                                         description="sticker automatically added by poll",
-                                        emoji="🤖", # not sure what the point of this attribute is, but it's required
+                                        emoji="🤖",  # not sure what the point of this attribute is, but it's required
                                         file=discord.File(
-                                            fp=temp_image_file_name, filename='sticker.png'
+                                            fp=temp_image_file_name,
+                                            filename="sticker.png",
                                         ),
                                     )
                                     await channel.send(
@@ -147,9 +157,7 @@ async def on_ready():
                                     reference=message,
                                 )
                     else:
-                        await channel.send(
-                            "Poll failed to pass", reference=message
-                        )
+                        await channel.send("Poll failed to pass", reference=message)
                     os.remove(
                         f"active_polls/{guild_id}/{channel.id}/{message.id}_{poll_type}"
                     )
