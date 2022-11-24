@@ -1,0 +1,29 @@
+# emoji_poll_bot
+A Discord Bot that creates polls to add/delete new emojis/stickers
+
+The bot uses slash commands to create polls.
+- `/add-emoji`
+- `/delete-emoji`
+- `/add-sticker`
+- `/delete-sticker`
+
+Various settings for the bot can be edited in `config.py`
+
+# Setup
+You'll need to create a `.TOKEN` file (or whatever you put for `TOKEN_FILE_NAME` in `config.py` with your [discord bot token](https://www.writebots.com/discord-bot-token/). Don't share this with anyone!
+
+After cloning the repo, make a python virtual environment and install the requirements
+
+```
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+Then run
+
+```
+bash run.sh
+```
+
+and invite the bot to your server. 
