@@ -28,4 +28,4 @@ Then run
 bash run.sh
 ```
 
-and invite the bot to your server. 
+and invite the bot to your server with the permissions integer `1073743936` and approve all permissions.
