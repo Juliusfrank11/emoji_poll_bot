@@ -54,7 +54,7 @@ async def get_votes(message: discord.Message, self_bot_id: int):
                 elif user.id in PRIVILEGED_USER_IDS:
                     yes_count += 1 * PRIVILEGED_USER_VOTE_WEIGHT
                 else:
-                    yes_count = 1
+                    yes_count += 1
         elif reaction.emoji == POLL_NO_EMOJI:
             async for user in reaction.users():
                 if user.id == self_bot_id:
