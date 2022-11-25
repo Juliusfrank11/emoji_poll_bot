@@ -12,6 +12,8 @@ Various settings for the bot can be edited in `config.py`
 # Setup
 You'll need to create a `.TOKEN` file (or whatever you put for `TOKEN_FILE_NAME` in `config.py`) with your [discord bot token](https://www.writebots.com/discord-bot-token/). Don't share this with anyone!
 
+You'll also need to make a `config.py` file, you can just rename `config_example.py` if you like the settings there
+
 After cloning the repo, make a python virtual environment and install the requirements
 
 ```
