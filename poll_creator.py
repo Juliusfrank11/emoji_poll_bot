@@ -79,18 +79,16 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
 
     if not validate_emoji_name(emoji_name):
         await ctx.send(
-            "Emoji name must be alphanumeric characters and underscores only"
+            "Emoji name must be alphanumeric characters and underscores only",
+            ephemeral=True,
         )
-        await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
-        await ctx.delete()
         return
 
     if not validate_image_url(emoji_url):
         await ctx.send(
-            "Invalid image URL, emoji url must end in png, jpg, or jpeg (Animated Emojis are not currently supported)"
+            "Invalid image URL, emoji url must end in png, jpg, or jpeg (Animated Emojis are not currently supported)",
+            ephemeral=True,
         )
-        await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
-        await ctx.delete()
         return
 
     embed = interactions.Embed(
@@ -142,17 +140,14 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
 
     # not sure if there are any restrictions on sticker names, but we can't have `:` for sure
     if ":" in sticker_name:
-        await ctx.send("Sticker name cannot contain `:`")
-        await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
-        await ctx.delete()
+        await ctx.send("Sticker name cannot contain `:`", ephemeral=True)
         return
 
     if not validate_image_url(sticker_url):
         await ctx.send(
-            "Invalid image URL, stick url must end in png, jpg, or jpeg (Animated stickers are not currently supported)"
+            "Invalid image URL, stick url must end in png, jpg, or jpeg (Animated stickers are not currently supported)",
+            ephemeral=True,
         )
-        await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
-        await ctx.delete()
         return
 
     embed = interactions.Embed(
@@ -198,9 +193,7 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
     existing_emojis = guild.emojis
     existing_emoji_names = [emoji.name for emoji in existing_emojis]
     if emoji_name not in existing_emoji_names:
-        await ctx.send("Emoji does not exist on this server")
-        await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
-        await ctx.delete()
+        await ctx.send("Emoji does not exist on this server", ephemeral=True)
         return
     else:
         for existing_emoji in existing_emojis:
@@ -259,9 +252,7 @@ async def delete_sticker(ctx: interactions.CommandContext, **kwargs):
     existing_stickers = guild.stickers
     existing_sticker_names = [emoji.name for emoji in existing_stickers]
     if sticker_name not in existing_sticker_names:
-        await ctx.send("sticker does not exist on this server")
-        await asyncio.sleep(DELETE_NOTIFICATIONS_AFTER)
-        await ctx.delete()
+        await ctx.send("Sticker does not exist on this server", ephemeral=True)
         return
     else:
         for existing_sticker in existing_stickers:
@@ -283,6 +274,24 @@ async def delete_sticker(ctx: interactions.CommandContext, **kwargs):
     save_poll_to_memory(
         poll_channel.guild_id, poll_channel.id, poll.id, "deletesticker"
     )
+
+
+@bot.command(
+    name="show-config",
+    description="Show the current configuration of the bot",
+)
+async def show_config(ctx: interactions.CommandContext):
+    """Show the current configuration of the bot
+    Prints the current contents of `config.py` to the channel
+
+
+    Args:
+        ctx (interactions.CommandContext): context of the command, inherited from decorator
+    """
+    with open("config.py", "r") as f:
+        config = f.read()
+    f.close()
+    await ctx.send(f"```py\n{config}\n```")
 
 
 bot.start()
