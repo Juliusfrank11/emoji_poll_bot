@@ -53,7 +53,7 @@ def get_poll_result(message: discord.Message):
     if yes_count + no_count == 0:
         return False
     else:
-        if yes_count / (yes_count + no_count) >= POLL_PASS_THRESHOLD:
+        if yes_count / (yes_count + no_count) >= POLL_PASS_THRESHOLD and yes_count + no_count >= MINIMUM_VOTES_FOR_POLL:
             return True
         else:
             return False

@@ -9,3 +9,4 @@ MAX_IMAGE_SIZE = 320**2  # Max area of image in pixels, set by discord so be car
 MAX_IMAGE_FILE_SIZE = 256000  # Max file size of image, set by discord so be careful changing this)
 TEMP_IMAGE_FILE_NAME = "adding_image_temp"  # Name of temporary image file for adding emojis and stickers
 AUTOMATICALLY_ADD_EMOJIS = True  # Whether to automatically add/delete emojis/stickers
+MINIMUM_VOTES_FOR_POLL = 5  # Minimum number of votes for a poll to be considered valid
