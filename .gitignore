@@ -3,3 +3,4 @@ venv/*
 active_polls/*
 __pycache__/*
 config.py
+reboot_bot.sh
