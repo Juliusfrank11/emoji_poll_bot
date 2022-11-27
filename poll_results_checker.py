@@ -137,7 +137,6 @@ async def on_ready():
                                     + str(request.status_code),
                                     reference=message,
                                 )
-                            os.remove(temp_image_file_name)
                         # deleting emoji/sticker
                         elif poll_type.startswith("delete"):
                             name = get_emoji_name_from_poll_message(message)
