@@ -82,7 +82,7 @@ async def get_poll_result(
     """
     if yes_count is None and no_count is None:
         yes_count, no_count = await get_votes(message, self_bot_id)
-    if yes_count + no_count < MINIMUM_VOTES_FOR_POLL or yes_count == 0:
+    if yes_count + no_count < MINIMUM_VOTES_FOR_POLL or yes_count + no_count == 0:
         return False
     else:
         if yes_count / (yes_count + no_count) >= POLL_PASS_THRESHOLD:
@@ -107,7 +107,7 @@ async def get_print_string_for_poll_result(
     """
     if yes_count is None and no_count is None:
         yes_count, no_count = await get_votes(message, self_bot_id)
-    if yes_count + no_count < MINIMUM_VOTES_FOR_POLL or yes_count == 0:
+    if yes_count + no_count < MINIMUM_VOTES_FOR_POLL or yes_count + no_count == 0:
         return f"Poll didn't reach the minimum number of votes ({MINIMUM_VOTES_FOR_POLL}) to pass. Had only {yes_count + no_count} vote(s)."
     result = round(yes_count / (yes_count + no_count) * 100, 2)
     poll_passed = await get_poll_result(message, self_bot_id)
