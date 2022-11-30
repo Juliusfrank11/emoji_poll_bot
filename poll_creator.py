@@ -19,6 +19,27 @@ if "active_polls" not in os.listdir():
 # used to create polls
 bot = interactions.Client(token)
 
+async def check_channel_is_allowed(channel_id,ctx):
+    """Check if a channel is allowed to be used for polls
+
+    Args:
+        channel_id (int): ID of channel
+        ctx (interactions.Context): context object
+
+    Returns:
+        bool: whether channel is allowed
+    """
+    if channel_id in ALLOWED_CHANNEL_IDS:
+        return True
+    else:
+        channel_mention = " ".join([f"<#{i}>" for i in ALLOWED_CHANNEL_IDS])
+        await ctx.send(
+            "This channel is not allowed to be used for polls. Please use one of the following channels: "
+            + channel_mention,
+            ephemeral=True,
+        )
+        return False
+
 
 def save_poll_to_memory(guild_id, channel_id, message_id, poll_type):
     """Save a poll to memory
@@ -74,6 +95,9 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
         url (str): URL of image to be made into an emoji
         name (str): name of the emoji
     """
+    if not await check_channel_is_allowed(ctx.channel_id,ctx):
+        return
+    
     emoji_name = kwargs["name"]
     emoji_url = kwargs["url"]
 
@@ -135,6 +159,9 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
         url (str): URL of image to be made into an sticker
         name (str): name of the sticker
     """
+    if not await check_channel_is_allowed(ctx.channel_id,ctx):
+        return
+    
     sticker_name = kwargs["name"]
     sticker_url = kwargs["url"]
 
@@ -186,6 +213,9 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
         ctx (interactions.CommandContext): context of the command, inherited from decorator
         emoji_name (str): name of emoji to delete
     """
+    if not await check_channel_is_allowed(ctx.channel_id,ctx):
+        return
+    
     emoji_name = kwargs["emoji-name"]
 
     # check if emoji exists and get emoji object if it does
@@ -245,6 +275,9 @@ async def delete_sticker(ctx: interactions.CommandContext, **kwargs):
         ctx (interactions.CommandContext): context of the command, inherited from decorator
         sticker_name (str): name of sticker to delete
     """
+    if not await check_channel_is_allowed(ctx.channel_id,ctx):
+        return
+    
     sticker_name = kwargs["sticker-name"]
 
     # check if sticker exists and get sticker object if it does

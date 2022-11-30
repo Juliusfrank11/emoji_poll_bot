@@ -28,3 +28,7 @@ PRIVILEGED_USER_IDS = [
 ]
 # How much more weight a privileged user's vote has
 PRIVILEGED_USER_VOTE_WEIGHT = 2
+# Channel IDs of channels where the bot can be used
+ALLOWED_CHANNEL_IDS = [
+    # 123456789012345678,   # Example channel ID
+]
