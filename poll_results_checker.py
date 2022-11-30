@@ -46,6 +46,104 @@ def get_active_polls_list_from_memory():
     return combos
 
 
+async def add_poll_result(poll: discord.Message, poll_type: str):
+    """Add an emoji to the server
+
+    Args:
+        poll (discord.Message): poll message
+        poll_type (str): type of poll, either "emoji" or "sticker"
+    """
+    image_url = poll.embeds[0].image.url
+    request = requests.get(image_url)
+    if request.status_code == 200:
+        name = get_emoji_name_from_poll_message(poll)
+
+        # resizing image if necessary
+        make_and_resize_image_from_url(
+            image_url,
+            MAX_IMAGE_SIZE,
+            MAX_IMAGE_FILE_SIZE,
+            TEMP_IMAGE_FILE_NAME,
+        )
+
+        # getting image bytes
+        for file in os.listdir():
+            if file.startswith("adding_image_temp."):
+                temp_image_file_name = file
+                f = open(temp_image_file_name, "rb")
+                image = f.read()
+                f.close()
+                break
+
+        # adding emoji
+        if poll_type.endswith("emoji"):
+            new_emoji = await poll.channel.guild.create_custom_emoji(
+                name=name, image=image
+            )
+            await poll.channel.send(
+                f"Emoji added: {str(new_emoji)}",
+                reference=poll,
+            )
+        # add sticker
+        elif poll_type.endswith("sticker"):
+            new_sticker = await poll.channel.guild.create_sticker(
+                name=name,
+                description="sticker automatically added by poll",
+                emoji="🤖",  # not sure what the point of this attribute is, but it's required
+                file=discord.File(
+                    fp=temp_image_file_name,
+                    filename="sticker.png",
+                ),
+            )
+            await poll.channel.send(
+                f"Sticker added: :{name}:",
+                stickers=[new_sticker],
+                reference=poll,
+            )
+    else:
+        await poll.channel.send(
+            "Failed to add emoji/sticker, image could not be retrieved, Status code: "
+            + str(request.status_code),
+            reference=poll,
+        )
+
+
+async def delete_poll_result(poll: discord.Message, poll_type: str):
+    """Delete an emoji from the server
+
+    Args:
+        poll (discord.Message): poll message
+        poll_type (str): type of poll, either "emoji" or "sticker"
+    """
+    name = get_emoji_name_from_poll_message(poll)
+    emoji_or_sticker_found = False
+    if poll_type.endswith("emoji"):
+        for emoji in poll.channel.guild.emojis:
+            if emoji.name == name:
+                await emoji.delete()
+                emoji_or_sticker_found = True
+                await poll.channel.send(
+                    f"Emoji deleted: {str(emoji)}",
+                    reference=poll,
+                )
+                break
+    elif poll_type.endswith("sticker"):
+        for sticker in poll.channel.guild.stickers:
+            if sticker.name == name:
+                await sticker.delete()
+                emoji_or_sticker_found = True
+                await poll.channel.send(
+                    f"Sticker deleted: :{name}:",
+                    reference=poll,
+                )
+                break
+    if not emoji_or_sticker_found:
+        await poll.channel.send(
+            "Failed to delete emoji/sticker, emoji/sticker not found",
+            reference=poll,
+        )
+
+
 @client.event
 async def on_ready():
     while True:
@@ -82,100 +180,22 @@ async def on_ready():
                         )
                         and AUTOMATICALLY_ADD_EMOJIS
                     ):
-                        # adding emoji/sticker
                         if poll_type.startswith("add"):
-                            image_url = message.embeds[0].image.url
-                            request = requests.get(image_url)
-                            if request.status_code == 200:
-                                name = get_emoji_name_from_poll_message(message)
-
-                                # resizing image if necessary
-                                make_and_resize_image_from_url(
-                                    image_url,
-                                    MAX_IMAGE_SIZE,
-                                    MAX_IMAGE_FILE_SIZE,
-                                    TEMP_IMAGE_FILE_NAME,
-                                )
-
-                                # getting image bytes
-                                for file in os.listdir():
-                                    if file.startswith("adding_image_temp."):
-                                        temp_image_file_name = file
-                                        f = open(temp_image_file_name, "rb")
-                                        image = f.read()
-                                        f.close()
-                                        break
-
-                                # adding emoji
-                                if poll_type.endswith("emoji"):
-                                    new_emoji = await channel.guild.create_custom_emoji(
-                                        name=name, image=image
-                                    )
-                                    await channel.send(
-                                        f"Emoji added: {str(new_emoji)}",
-                                        reference=message,
-                                    )
-                                # add sticker
-                                elif poll_type.endswith("sticker"):
-                                    new_sticker = await channel.guild.create_sticker(
-                                        name=name,
-                                        description="sticker automatically added by poll",
-                                        emoji="🤖",  # not sure what the point of this attribute is, but it's required
-                                        file=discord.File(
-                                            fp=temp_image_file_name,
-                                            filename="sticker.png",
-                                        ),
-                                    )
-                                    await channel.send(
-                                        f"Sticker added: :{name}:",
-                                        stickers=[new_sticker],
-                                        reference=message,
-                                    )
-                            else:
-                                await channel.send(
-                                    "Failed to add emoji, image url returned status code "
-                                    + str(request.status_code),
-                                    reference=message,
-                                )
+                            await add_poll_result(message, poll_type)
                         # deleting emoji/sticker
                         elif poll_type.startswith("delete"):
-                            name = get_emoji_name_from_poll_message(message)
-                            sticker_or_emoji_found = False
-                            # deleting emoji
-                            if poll_type.endswith("emoji"):
-                                existing_emojis = channel.guild.emojis
-                                for emoji in existing_emojis:
-                                    if emoji.name == name:
-                                        await emoji.delete()
-                                        await channel.send(
-                                            f"Emoji deleted: :{name}:",
-                                            reference=message,
-                                        )
-                                        sticker_or_emoji_found = True
-                                        break
-                            # deleting sticker
-                            elif poll_type.endswith("sticker"):
-                                for sticker in channel.guild.stickers:
-                                    if sticker.name == name:
-                                        await sticker.delete()
-                                        await channel.send(
-                                            f"Sticker deleted: :{name}:",
-                                            reference=message,
-                                        )
-                                        sticker_or_emoji_found = True
-                                        break
-                            if not sticker_or_emoji_found:
-                                await channel.send(
-                                    f"Failed to delete emoji/sticker, no emoji/sticker with name :{name}: found",
-                                    reference=message,
-                                )
+                            await delete_poll_result(message, poll_type)
                     os.remove(
                         f"active_polls/{guild_id}/{channel.id}/{message.id}_{poll_type}"
                     )
             except discord.errors.NotFound:
-                logging.info(f"Message {guild_id}-{channel_id}-{message_id} not found, skipping")
+                logging.info(
+                    f"Message {guild_id}-{channel_id}-{message_id} not found, skipping"
+                )
                 try:
-                    os.remove(f"active_polls/{guild_id}/{channel_id}/{message_id}_{poll_type}")
+                    os.remove(
+                        f"active_polls/{guild_id}/{channel_id}/{message_id}_{poll_type}"
+                    )
                 except FileNotFoundError:
                     pass
         await asyncio.sleep(WAIT_TIME_BETWEEN_CHECKS)

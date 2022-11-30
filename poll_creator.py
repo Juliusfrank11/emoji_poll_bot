@@ -19,7 +19,8 @@ if "active_polls" not in os.listdir():
 # used to create polls
 bot = interactions.Client(token)
 
-async def check_channel_is_allowed(channel_id,ctx):
+
+async def check_channel_is_allowed(channel_id, ctx):
     """Check if a channel is allowed to be used for polls
 
     Args:
@@ -95,11 +96,18 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
         url (str): URL of image to be made into an emoji
         name (str): name of the emoji
     """
-    if not await check_channel_is_allowed(ctx.channel_id,ctx):
+    if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
-    
+
     emoji_name = kwargs["name"]
     emoji_url = kwargs["url"]
+
+    guild = await ctx.get_guild()
+    existing_emojis = guild.emojis
+    existing_emoji_names = [emoji.name for emoji in existing_emojis]
+    if emoji_name in existing_emoji_names:
+        await ctx.send("Emoji name already on this server", ephemeral=True)
+        return
 
     if not validate_emoji_name(emoji_name):
         await ctx.send(
@@ -114,6 +122,8 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
             ephemeral=True,
         )
         return
+
+    guild = await bot.get_guild(ctx.guild_id)
 
     embed = interactions.Embed(
         title=f"POLL FOR NEW EMOJI: :{emoji_name}:",
@@ -159,11 +169,18 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
         url (str): URL of image to be made into an sticker
         name (str): name of the sticker
     """
-    if not await check_channel_is_allowed(ctx.channel_id,ctx):
+    if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
-    
+
     sticker_name = kwargs["name"]
     sticker_url = kwargs["url"]
+
+    guild = await ctx.get_guild()
+    existing_stickers = guild.stickers
+    existing_sticker_names = [emoji.name for emoji in existing_stickers]
+    if sticker_name in existing_sticker_names:
+        await ctx.send("Sticker name already exists on this server", ephemeral=True)
+        return
 
     # not sure if there are any restrictions on sticker names, but we can't have `:` for sure
     if ":" in sticker_name:
@@ -213,9 +230,9 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
         ctx (interactions.CommandContext): context of the command, inherited from decorator
         emoji_name (str): name of emoji to delete
     """
-    if not await check_channel_is_allowed(ctx.channel_id,ctx):
+    if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
-    
+
     emoji_name = kwargs["emoji-name"]
 
     # check if emoji exists and get emoji object if it does
@@ -275,9 +292,9 @@ async def delete_sticker(ctx: interactions.CommandContext, **kwargs):
         ctx (interactions.CommandContext): context of the command, inherited from decorator
         sticker_name (str): name of sticker to delete
     """
-    if not await check_channel_is_allowed(ctx.channel_id,ctx):
+    if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
-    
+
     sticker_name = kwargs["sticker-name"]
 
     # check if sticker exists and get sticker object if it does
