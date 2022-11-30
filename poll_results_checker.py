@@ -118,28 +118,120 @@ async def delete_poll_result(poll: discord.Message, poll_type: str):
     name = get_emoji_name_from_poll_message(poll)
     emoji_or_sticker_found = False
     if poll_type.endswith("emoji"):
-        for emoji in poll.channel.guild.emojis:
-            if emoji.name == name:
-                await emoji.delete()
-                emoji_or_sticker_found = True
-                await poll.channel.send(
-                    f"Emoji deleted: {str(emoji)}",
-                    reference=poll,
-                )
-                break
+        emoji = get_existing_emoji_by_name(name, poll.channel.guild.emojis)
+        if emoji is not None:
+            await emoji.delete()
+            emoji_or_sticker_found = True
+            await poll.channel.send(
+                f"Emoji deleted: {str(emoji)}",
+                reference=poll,
+            )
     elif poll_type.endswith("sticker"):
-        for sticker in poll.channel.guild.stickers:
-            if sticker.name == name:
-                await sticker.delete()
-                emoji_or_sticker_found = True
-                await poll.channel.send(
-                    f"Sticker deleted: :{name}:",
-                    reference=poll,
-                )
-                break
+        sticker = get_existing_emoji_by_name(name, poll.channel.guild.stickers)
+        if sticker is not None:
+            await sticker.delete()
+            emoji_or_sticker_found = True
+            await poll.channel.send(
+                f"Sticker deleted: :{name}:",
+                reference=poll,
+            )
     if not emoji_or_sticker_found:
         await poll.channel.send(
             "Failed to delete emoji/sticker, emoji/sticker not found",
+            reference=poll,
+        )
+
+
+async def rename_poll_result(poll: discord.Message, poll_type: str):
+    """Rename an emoji from the server
+
+    Args:
+        poll (discord.Message): poll message
+        poll_type (str): type of poll, either "emoji" or "sticker"
+    """
+    old_name = get_emoji_name_from_poll_message(poll)
+    new_name = get_emoji_name_from_poll_message(poll, new=True)
+    emoji_or_sticker_found = False
+    if poll_type.endswith("emoji"):
+        emoji = get_existing_emoji_by_name(old_name, poll.channel.guild.emojis)
+        if emoji is not None:
+            emoji = await emoji.edit(name=new_name)
+            emoji_or_sticker_found = True
+            await poll.channel.send(
+                f"Emoji ({str(emoji)}) renamed `:{old_name}: -> :{new_name}:`",
+                reference=poll,
+            )
+
+    elif poll_type.endswith("sticker"):
+        sticker = get_existing_emoji_by_name(old_name, poll.channel.guild.stickers)
+        if sticker is not None:
+            sticker = await sticker.edit(name=new_name)
+            emoji_or_sticker_found = True
+            await poll.channel.send(
+                f"Sticker renamed: `:{old_name}: -> :{new_name}:`", stickers=[sticker], reference=poll
+            )
+    if not emoji_or_sticker_found:
+        await poll.channel.send(
+            "Failed to rename emoji/sticker, emoji/sticker not found",
+            reference=poll,
+        )
+
+
+async def change_poll_result(poll: discord.Message, poll_type: str):
+    image_url = poll.embeds[0].image.url
+    request = requests.get(image_url)
+    name = get_emoji_name_from_poll_message(poll)
+    emoji_or_sticker_found = False
+    if request.status_code == 200:
+        make_and_resize_image_from_url(
+            image_url,
+            MAX_IMAGE_SIZE,
+            MAX_IMAGE_FILE_SIZE,
+            TEMP_IMAGE_FILE_NAME,
+        )
+
+        # getting image bytes
+        for file in os.listdir():
+            if file.startswith("adding_image_temp."):
+                temp_image_file_name = file
+                f = open(temp_image_file_name, "rb")
+                image = f.read()
+                f.close()
+                break
+
+        if poll_type.endswith("emoji"):
+            emoji = get_existing_emoji_by_name(name, poll.channel.guild.emojis)
+            if emoji is not None:
+                emoji_or_sticker_found = True
+                await emoji.delete()
+                new_emoji = await poll.guild.create_custom_emoji(name=name, image=image)
+                await poll.channel.send(
+                    f"Emoji changed: {str(new_emoji)}",
+                    reference=poll,
+                )
+        elif poll_type.endswith("sticker"):
+            sticker = get_existing_emoji_by_name(name, poll.channel.guild.stickers)
+            if sticker is not None:
+                emoji_or_sticker_found = True
+                await sticker.delete()
+                new_sticker = await poll.channel.guild.create_sticker(
+                    name=name,
+                    description="sticker automatically added by poll",
+                    emoji="🤖",  # not sure what the point of this attribute is, but it's required
+                    file=discord.File(
+                        fp=temp_image_file_name,
+                        filename="sticker.png",
+                    ),
+                )
+                await poll.channel.send(
+                    f"Sticker changed: :{name}:",
+                    stickers=[new_sticker],
+                    reference=poll,
+                )
+    else:
+        await poll.channel.send(
+            "Failed to add emoji/sticker, image could not be retrieved, Status code: "
+            + str(request.status_code),
             reference=poll,
         )
 
@@ -182,9 +274,12 @@ async def on_ready():
                     ):
                         if poll_type.startswith("add"):
                             await add_poll_result(message, poll_type)
-                        # deleting emoji/sticker
                         elif poll_type.startswith("delete"):
                             await delete_poll_result(message, poll_type)
+                        elif poll_type.startswith("rename"):
+                            await rename_poll_result(message, poll_type)
+                        elif poll_type.startswith("change"):
+                            await change_poll_result(message, poll_type)
                     os.remove(
                         f"active_polls/{guild_id}/{channel.id}/{message.id}_{poll_type}"
                     )

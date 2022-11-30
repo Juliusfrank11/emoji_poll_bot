@@ -67,6 +67,27 @@ def save_poll_to_memory(guild_id, channel_id, message_id, poll_type):
     f.close()
 
 
+async def create_poll_message(ctx, title, description, url=None, image_url=None):
+    """Create a poll message
+
+    Args:
+        ctx (interactions.Context): context object
+        title (str): title of embed
+        description (str): body of embed
+        url (str, optional): url that title hyperlinks to. Defaults to None.
+        image_url (str, optional): url of embed image. Defaults to None.
+
+    Returns:
+        int: ID of created poll
+    """
+    embed = interactions.Embed(title=title, url=url, description=description)
+    embed.set_image(url=image_url)
+    poll = await ctx.send(embeds=[embed])
+    await poll.create_reaction(POLL_YES_EMOJI)
+    await poll.create_reaction(POLL_NO_EMOJI)
+    return poll.id
+
+
 @bot.command(
     name="add-emoji",
     description="Make a poll to add an emoji to the server",
@@ -123,19 +144,17 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
         )
         return
 
-    embed = interactions.Embed(
-        title=f"POLL FOR NEW EMOJI: :{emoji_name}:",
-        description="Should we add this emoji? (full size version below this poll)",
-        url=emoji_url,
+    poll_id = await create_poll_message(
+        ctx,
+        "POLL FOR NEW EMOJI: :{emoji_name}:",
+        f"Should we add this emoji? (full size version below this poll)",
+        emoji_url,
+        emoji_url,
     )
-    embed.set_image(url=emoji_url)
-    poll = await ctx.send(embeds=embed)
-    await poll.create_reaction(POLL_YES_EMOJI)
-    await poll.create_reaction(POLL_NO_EMOJI)
 
     # save poll to active_polls directory
     poll_channel = await ctx.get_channel()
-    save_poll_to_memory(poll_channel.guild_id, poll_channel.id, poll.id, "addemoji")
+    save_poll_to_memory(poll_channel.guild_id, poll_channel.id, poll_id, "addemoji")
 
 
 @bot.command(
@@ -192,19 +211,17 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
         )
         return
 
-    embed = interactions.Embed(
-        title=f"POLL FOR NEW STICKER: :{sticker_name}:",
-        description="Should we add this sticker? (full size version below this poll)",
-        url=sticker_url,
+    poll_id = await create_poll_message(
+        ctx,
+        f"POLL FOR NEW STICKER: :{sticker_name}:",
+        f"Should we add this sticker? (full size version below this poll)",
+        sticker_url,
+        sticker_url,
     )
-    embed.set_image(url=sticker_url)
-    poll = await ctx.send(embeds=embed)
-    await poll.create_reaction(POLL_YES_EMOJI)
-    await poll.create_reaction(POLL_NO_EMOJI)
 
     # save poll to active_polls directory
     poll_channel = await ctx.get_channel()
-    save_poll_to_memory(poll_channel.guild_id, poll_channel.id, poll.id, "addsticker")
+    save_poll_to_memory(poll_channel.guild_id, poll_channel.id, poll_id, "addsticker")
 
 
 @bot.command(
@@ -236,37 +253,24 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
     # check if emoji exists and get emoji object if it does
     guild = await ctx.get_guild()
     existing_emojis = guild.emojis
-    existing_emoji_names = [emoji.name for emoji in existing_emojis]
-    if emoji_name not in existing_emoji_names:
+    emoji = get_existing_emoji_by_name(emoji_name, existing_emojis)
+    if emoji is None:
         await ctx.send("Emoji does not exist on this server", ephemeral=True)
         return
-    else:
-        for existing_emoji in existing_emojis:
-            if existing_emoji.name == emoji_name:
-                emoji = existing_emoji
-                break
 
-    # get string representation of emoji
-    if emoji.animated:
-        animated_str = "a"
-    else:
-        animated_str = ""
-    emoji_str = f"<{animated_str}:{emoji.name}:{emoji.id}>"
+    emoji_str = get_emoji_formatted_str(emoji)
 
-    embed = interactions.Embed(
-        title=f"POLL FOR DELETING EMOJI: :{emoji_name}:",
-        description=f"Should we delete this emoji? {emoji_str} (full size version below this poll)",
+    poll_id = await create_poll_message(
+        ctx,
+        f"POLL FOR DELETING EMOJI: :{emoji_name}:",
+        f"Should we delete this emoji? {emoji_str} (full size version below this poll)",
+        f"https://cdn.discordapp.com/emojis/{emoji.id}.png?size=128&quality=lossless",
+        f"https://cdn.discordapp.com/emojis/{emoji.id}.png?size=128&quality=lossless",
     )
-    embed.set_image(
-        url=f"https://cdn.discordapp.com/emojis/{emoji.id}.png?size=128&quality=lossless"
-    )
-    poll = await ctx.send(embeds=embed)
-    await poll.create_reaction(POLL_YES_EMOJI)
-    await poll.create_reaction(POLL_NO_EMOJI)
 
     # save poll to active_polls directory
     poll_channel = await ctx.get_channel()
-    save_poll_to_memory(poll_channel.guild_id, poll_channel.id, poll.id, "deleteemoji")
+    save_poll_to_memory(poll_channel.guild_id, poll_channel.id, poll_id, "deleteemoji")
 
 
 @bot.command(
@@ -298,31 +302,254 @@ async def delete_sticker(ctx: interactions.CommandContext, **kwargs):
     # check if sticker exists and get sticker object if it does
     guild = await ctx.get_guild()
     existing_stickers = guild.stickers
-    existing_sticker_names = [emoji.name for emoji in existing_stickers]
-    if sticker_name not in existing_sticker_names:
-        await ctx.send("Sticker does not exist on this server", ephemeral=True)
+    sticker = get_existing_emoji_by_name(sticker_name, existing_stickers)
+    if sticker is None:
+        ctx.send("Sticker does not exist on this server", ephemeral=True)
         return
-    else:
-        for existing_sticker in existing_stickers:
-            if existing_sticker.name == sticker_name:
-                sticker = existing_sticker
-                break
 
-    embed = interactions.Embed(
-        title=f"POLL FOR DELETING STICKER: :{sticker_name}:",
-        description="Should we delete this sticker?",
+    poll_id = await create_poll_message(
+        ctx,
+        f"POLL FOR DELETING STICKER: :{sticker_name}:",
+        f"Should we delete this sticker? (full size version below this poll)",
+        f"https://cdn.discordapp.com/stickers/{sticker.id}.png",
+        f"https://cdn.discordapp.com/stickers/{sticker.id}.png",
     )
-    embed.set_image(url=f"https://cdn.discordapp.com/stickers/{sticker.id}.png")
-    poll = await ctx.send(embeds=embed)
-    await poll.create_reaction(POLL_YES_EMOJI)
-    await poll.create_reaction(POLL_NO_EMOJI)
 
     # save poll to active_polls directory
     poll_channel = await ctx.get_channel()
     save_poll_to_memory(
-        poll_channel.guild_id, poll_channel.id, poll.id, "deletesticker"
+        poll_channel.guild_id, poll_channel.id, poll_id, "deletesticker"
     )
 
+
+@bot.command(
+    name="rename-emoji",
+    description="Make a poll to rename an existing emoji on the server",
+    options=[
+        interactions.Option(
+            type=interactions.OptionType.STRING,
+            name="emoji-name",
+            description="CURRENT emoji name, WITHOUT the colons",
+            focused=False,
+            required=True,
+        ),
+        interactions.Option(
+            type=interactions.OptionType.STRING,
+            name="new-emoji-name",
+            description="NEW emoji name, WITHOUT the colons",
+            focused=False,
+            required=True,
+        ),
+    ],
+)
+async def rename_emoji(ctx: interactions.CommandContext, **kwargs):
+    """Create a poll to rename an emoji on the server
+
+    Args:
+        ctx (interactions.CommandContext): context of the command, inherited from decorator
+        current_name (str): current name of the emoji
+        new_name (str): proposed new name of the emoji
+    """
+    if not await check_channel_is_allowed(ctx.channel_id, ctx):
+        return
+
+    current_name = kwargs["emoji-name"]
+    new_name = kwargs["new-emoji-name"]
+
+    guild = await ctx.get_guild()
+    existing_emojis = guild.emojis
+
+    if not validate_emoji_name(new_name):
+        await ctx.send("Invalid emoji name", ephemeral=True)
+        return
+
+    emoji = get_existing_emoji_by_name(current_name, existing_emojis)
+    if emoji is None:
+        await ctx.send("Emoji does not exist on this server", ephemeral=True)
+        return
+
+    # get string representation of emoji
+    emoji_str = get_emoji_formatted_str(emoji)
+
+    poll_id = await create_poll_message(
+        ctx,
+        f"POLL FOR RENAMING EMOJI: :{current_name}: -> :{new_name}:",
+        f"Should we rename this emoji ({emoji_str}) to :{new_name}:?",
+        f"https://cdn.discordapp.com/emojis/{emoji.id}.png?size=128&quality=lossless",
+        f"https://cdn.discordapp.com/emojis/{emoji.id}.png?size=128&quality=lossless",
+    )
+
+    poll_channel = await ctx.get_channel()
+    save_poll_to_memory(poll_channel.guild_id, poll_channel.id, poll_id, "renameemoji")
+
+
+@bot.command(
+    name="rename-sticker",
+    description="Make a poll to rename an existing sticker on the server",
+    options=[
+        interactions.Option(
+            type=interactions.OptionType.STRING,
+            name="sticker-name",
+            description="CURRENT sticker name, WITHOUT the colons",
+            focused=False,
+            required=True,
+        ),
+        interactions.Option(
+            type=interactions.OptionType.STRING,
+            name="new-sticker-name",
+            description="NEW sticker name, WITHOUT the colons",
+            focused=False,
+            required=True,
+        ),
+    ],
+)
+async def rename_sticker(ctx: interactions.CommandContext, **kwargs):
+    """Create a poll to rename an sticker on the server
+
+    Args:
+        ctx (interactions.CommandContext): context of the command, inherited from decorator
+        current_name (str): current name of the sticker
+        new_name (str): proposed new name of the sticker
+    """
+    current_name = kwargs["sticker-name"]
+    new_name = kwargs["new-sticker-name"]
+
+    if ":" in new_name:
+        ctx.send("Sticker name cannot contain colons", ephemeral=True)
+        return
+
+    guild = await ctx.get_guild()
+    existing_stickers = guild.stickers
+    sticker = get_existing_emoji_by_name(current_name, existing_stickers)
+    if sticker is None:
+        ctx.send("Sticker does not exist on this server", ephemeral=True)
+        return
+
+    poll_id = await create_poll_message(
+        ctx,
+        f"POLL FOR RENAMING STICKER: :{current_name}: -> :{new_name}:",
+        f"Should we rename this sticker to :{new_name}:?",
+        f"https://cdn.discordapp.com/stickers/{sticker.id}.png",
+        f"https://cdn.discordapp.com/stickers/{sticker.id}.png",
+    )
+
+    channel = await ctx.get_channel()
+    save_poll_to_memory(channel.guild_id, channel.id, poll_id, "renamesticker")
+
+
+@bot.command(
+    name="change-emoji",
+    description="Make a poll to change the image of an existing emoji on the server",
+    options=[
+        interactions.Option(
+            type=interactions.OptionType.STRING,
+            name="emoji-name",
+            description="emoji name, WITHOUT the colons",
+            focused=False,
+            required=True,
+        ),
+        interactions.Option(
+            type=interactions.OptionType.STRING,
+            name="image-url",
+            description="URL of the image to change the emoji to",
+            focused=False,
+            required=True,
+        ),
+    ],
+)
+async def change_emoji(ctx: interactions.CommandContext, **kwargs):
+    """Create a poll to change the image of an emoji on the server
+
+    Args:
+        ctx (interactions.CommandContext): context of the command, inherited from decorator
+        emoji_name (str): name of the emoji to change
+        image_url (str): url of the image to change the emoji to
+    """
+    if not await check_channel_is_allowed(ctx.channel_id, ctx):
+        return
+
+    emoji_name = kwargs["emoji-name"]
+    image_url = kwargs["image-url"]
+
+    if not validate_image_url(image_url):
+        await ctx.send("Invalid image URL", ephemeral=True)
+        return
+
+    guild = await ctx.get_guild()
+    existing_emojis = guild.emojis
+    emoji = get_existing_emoji_by_name(emoji_name, existing_emojis)
+    if emoji is None:
+        await ctx.send("Emoji does not exist on this server", ephemeral=True)
+        return
+
+    # get string representation of emoji
+    emoji_str = get_emoji_formatted_str(emoji)
+
+    poll_id = await create_poll_message(
+        ctx,
+        f"POLL FOR CHANGING EMOJI: :{emoji_name}:",
+        f"Should we change this emoji ({emoji_str}) to this image?",
+        image_url,
+        image_url,
+    )
+
+    poll_channel = await ctx.get_channel()
+    save_poll_to_memory(poll_channel.guild_id, poll_channel.id, poll_id, "changeemoji")
+
+
+@bot.command(
+    name="change-sticker",
+    description="Make a poll to change the image of an existing sticker on the server",
+    options=[
+        interactions.Option(
+            type=interactions.OptionType.STRING,
+            name="sticker-name",
+            description="sticker name, WITHOUT the colons",
+            focused=False,
+            required=True,
+        ),
+        interactions.Option(
+            type=interactions.OptionType.STRING,
+            name="image-url",
+            description="URL of the image to change the sticker to",
+            focused=False,
+            required=True,
+        ),
+    ],
+)
+async def change_sticker(ctx: interactions.CommandContext, **kwargs):
+    """Create a poll to change the image of a sticker on the server
+
+    Args:
+        ctx (interactions.CommandContext): context of the command, inherited from decorator
+        sticker_name (str): name of the sticker to change
+        image_url (str): url of the image to change the sticker to
+    """
+    if not await check_channel_is_allowed(ctx.channel_id, ctx):
+        return
+
+    sticker_name = kwargs["sticker-name"]
+    image_url = kwargs["image-url"]
+
+    if not validate_image_url(image_url):
+        await ctx.send("Invalid image URL", ephemeral=True)
+        return
+
+    guild = await ctx.get_guild()
+    existing_stickers = guild.stickers
+    sticker = get_existing_emoji_by_name(sticker_name, existing_stickers)
+    if sticker is None:
+        await ctx.send("Sticker does not exist on this server", ephemeral=True)
+        return
+
+    poll_id = await create_poll_message(
+        ctx,
+        f"POLL FOR CHANGING STICKER: :{sticker_name}:",
+        f"Should we change this sticker to this image?",
+        image_url,
+        image_url,
+    )
+    save_poll_to_memory(ctx.guild_id, ctx.channel_id, poll_id, "changesticker")
 
 @bot.command(
     name="show-config",
@@ -339,7 +566,6 @@ async def show_config(ctx: interactions.CommandContext):
     with open("config.py", "r") as f:
         config = f.read()
     f.close()
-    await ctx.send(f"```py\n{config}\n```")
-
+    await ctx.send(f"```py\n{config}\n```", ephemeral=True)
 
 bot.start()

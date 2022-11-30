@@ -131,16 +131,20 @@ async def get_print_string_for_poll_result(
         )
 
 
-def get_emoji_name_from_poll_message(message: discord.Message):
+def get_emoji_name_from_poll_message(message: discord.Message, new=False):
     """Get the name of the emoji from a poll
 
     Args:
-        message (discord.Message): _description_
+        message (discord.Message): message object of the poll
+        new (boolean, Optional): whether the poll to get the new emoji name, only used in renaming polls
 
     Returns:
         str: name of emoji
     """
-    return message.embeds[0].title.split(":")[2]
+    if new:
+        return message.embeds[0].title.split(":")[4]
+    else:
+        return message.embeds[0].title.split(":")[2]
 
 
 def make_and_resize_image_from_url(
@@ -171,3 +175,35 @@ def make_and_resize_image_from_url(
         )  # just to be safe that file and the object are in sync
 
     img.save(full_output_file_name, format="PNG")
+
+
+def get_existing_emoji_by_name(name, existing_emojis):
+    """Get an existing emoji (or sticker) by name
+
+    Args:
+        name (str): name of emoji/sticker
+        existing_emojis (list[Union(interaction.Emoji,discord.Emoji)]): list of existing emojis/stickers
+    """
+    existing_emoji_names = [emoji.name for emoji in existing_emojis]
+    if name not in existing_emoji_names:
+        return None
+    else:
+        for existing_emoji in existing_emojis:
+            if existing_emoji.name == name:
+                return existing_emoji
+
+
+def get_emoji_formatted_str(emoji):
+    """Get a string to print for an emoji
+
+    Args:
+        emoji (Union(interaction.Emoji,discord.Emoji)): emoji to print
+
+    Returns:
+        str: string to print
+    """
+    if emoji.animated:
+        animated_str = "a"
+    else:
+        animated_str = ""
+    return f"<{animated_str}:{emoji.name}:{emoji.id}>"
