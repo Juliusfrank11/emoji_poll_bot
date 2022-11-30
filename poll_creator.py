@@ -123,8 +123,6 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
         )
         return
 
-    guild = await bot.get_guild(ctx.guild_id)
-
     embed = interactions.Embed(
         title=f"POLL FOR NEW EMOJI: :{emoji_name}:",
         description="Should we add this emoji? (full size version below this poll)",
