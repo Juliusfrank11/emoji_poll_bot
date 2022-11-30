@@ -1,4 +1,3 @@
-import asyncio
 import os
 
 import interactions
@@ -146,7 +145,7 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
 
     poll_id = await create_poll_message(
         ctx,
-        "POLL FOR NEW EMOJI: :{emoji_name}:",
+        f"POLL FOR NEW EMOJI: :{emoji_name}:",
         f"Should we add this emoji? (full size version below this poll)",
         emoji_url,
         emoji_url,
@@ -551,6 +550,7 @@ async def change_sticker(ctx: interactions.CommandContext, **kwargs):
     )
     save_poll_to_memory(ctx.guild_id, ctx.channel_id, poll_id, "changesticker")
 
+
 @bot.command(
     name="show-config",
     description="Show the current configuration of the bot",
@@ -567,5 +567,39 @@ async def show_config(ctx: interactions.CommandContext):
         config = f.read()
     f.close()
     await ctx.send(f"```py\n{config}\n```", ephemeral=True)
+
+
+@bot.command(
+    name="show-polls",
+    description="Show currently active polls",
+)
+async def show_polls(ctx: interactions.CommandContext):
+    """Show currently active polls
+
+    Args:
+        ctx (interactions.CommandContext): command context, inherited from decorator
+    """
+    polls = []
+    guild = await ctx.get_guild()
+    if os.path.exists(f"active_polls/{guild.id}"):
+        for channel_id in os.listdir(f"active_polls/{guild.id}"):
+            for poll in os.listdir(f"active_polls/{guild.id}/{channel_id}"):
+                poll_id, poll_type = poll.split("_")
+                polls.append(
+                    "https://discord.com/channels/{}/{}/{} ".format(
+                        guild.id, channel_id, poll_id
+                    )
+                    + poll_type
+                )
+    else:
+        await ctx.send("No active polls", ephemeral=True)
+    if len(polls) > 0:
+        message = ""
+        while len(message) < 2000 and len(polls) > 0:
+            message += polls.pop(0) + "\n"
+        await ctx.send(message, ephemeral=True)
+    else:
+        await ctx.send("No active polls", ephemeral=True)
+
 
 bot.start()

@@ -168,7 +168,9 @@ async def rename_poll_result(poll: discord.Message, poll_type: str):
             sticker = await sticker.edit(name=new_name)
             emoji_or_sticker_found = True
             await poll.channel.send(
-                f"Sticker renamed: `:{old_name}: -> :{new_name}:`", stickers=[sticker], reference=poll
+                f"Sticker renamed: `:{old_name}: -> :{new_name}:`",
+                stickers=[sticker],
+                reference=poll,
             )
     if not emoji_or_sticker_found:
         await poll.channel.send(
