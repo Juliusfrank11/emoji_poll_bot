@@ -50,9 +50,9 @@ async def check_emoji_is_modifiable(emoji_name, ctx):
     Returns:
         bool: whether emoji is modifiable
     """
-    guild = ctx.get_guild()
+    guild = await ctx.get_guild()
     existing_emojis = guild.emojis
-    emoji = get_existing_emoji_by_name(emoji_name)
+    emoji = get_existing_emoji_by_name(emoji_name,existing_emojis)
     if emoji.id in PROTECTED_EMOTE_IDS:
         await ctx.send("This emoji is protected and can not be modified", ephemeral=True)
         return False
