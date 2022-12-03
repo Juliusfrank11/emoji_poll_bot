@@ -32,7 +32,5 @@ PRIVILEGED_USER_VOTE_WEIGHT = 2
 ALLOWED_CHANNEL_IDS = [
     # 123456789012345678,   # Example channel ID
 ]
-# Emoji IDs of emojis that can not be modified by the bot 
-PROTECTED_EMOTE_IDS = [
-    # 123456789012345678,   # Example emoji ID
-]
+# Emoji names that can not be modified by the bot
+PROTECTED_EMOTE_NAMES = []

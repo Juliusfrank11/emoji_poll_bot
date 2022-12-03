@@ -40,8 +40,9 @@ async def check_channel_is_allowed(channel_id, ctx):
         )
         return False
 
+
 async def check_emoji_is_modifiable(emoji_name, ctx):
-    """Check if an emoji is modifiable
+    """Check if an emoji name is modifiable
 
     Args:
         emoji_name (str): name of emoji
@@ -50,11 +51,8 @@ async def check_emoji_is_modifiable(emoji_name, ctx):
     Returns:
         bool: whether emoji is modifiable
     """
-    guild = await ctx.get_guild()
-    existing_emojis = guild.emojis
-    emoji = get_existing_emoji_by_name(emoji_name,existing_emojis)
-    if emoji.id in PROTECTED_EMOTE_IDS:
-        await ctx.send("This emoji is protected and can not be modified", ephemeral=True)
+    if emoji_name in PROTECTED_EMOTE_NAMES:
+        await ctx.send("This name is protected and can not be modified", ephemeral=True)
         return False
     else:
         return True
@@ -140,6 +138,8 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
+    if not await check_emoji_is_modifiable(emoji_name, ctx):
+        return
 
     guild = await ctx.get_guild()
     existing_emojis = guild.emojis
@@ -165,7 +165,7 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
     poll_id = await create_poll_message(
         ctx,
         f"POLL FOR NEW EMOJI: :{emoji_name}:",
-        f"Should we add this emoji? (full size version below this poll)",
+        "Should we add this emoji? (full size version below this poll)",
         emoji_url,
         emoji_url,
     )
@@ -200,14 +200,17 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
 
 
     Args:
-        ctx (interactions.CommandContext): context of the command, inherited from decorator
+        ctx (interactions.CommandContext): context of the command,
+            inherited from decorator
         url (str): URL of image to be made into an sticker
         name (str): name of the sticker
     """
     sticker_name = kwargs["name"]
     sticker_url = kwargs["url"]
-    
+
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
+        return
+    if not await check_emoji_is_modifiable(sticker_name, ctx):
         return
 
     guild = await ctx.get_guild()
@@ -217,14 +220,16 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
         await ctx.send("Sticker name already exists on this server", ephemeral=True)
         return
 
-    # not sure if there are any restrictions on sticker names, but we can't have `:` for sure
+    # not sure if there are any restrictions on sticker names,
+    # but we can't have `:` for sure
     if ":" in sticker_name:
         await ctx.send("Sticker name cannot contain `:`", ephemeral=True)
         return
 
     if not validate_image_url(sticker_url):
         await ctx.send(
-            "Invalid image URL, stick url must end in png, jpg, or jpeg (Animated stickers are not currently supported)",
+            """Invalid image URL, stick url must end in png, jpg, or 
+            jpeg (Animated stickers are not currently supported)""",
             ephemeral=True,
         )
         return
@@ -264,8 +269,10 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
         emoji_name (str): name of emoji to delete
     """
     emoji_name = kwargs["emoji-name"]
-    
-    if not await check_channel_is_allowed(ctx.channel_id, ctx) or not await check_emoji_is_modifiable(emoji_name, ctx):
+
+    if not await check_channel_is_allowed(ctx.channel_id, ctx):
+        return
+    if not await check_emoji_is_modifiable(emoji_name, ctx):
         return
 
     # check if emoji exists and get emoji object if it does
@@ -313,8 +320,10 @@ async def delete_sticker(ctx: interactions.CommandContext, **kwargs):
         sticker_name (str): name of sticker to delete
     """
     sticker_name = kwargs["sticker-name"]
-    
+
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
+        return
+    if not await check_emoji_is_modifiable(sticker_name, ctx):
         return
 
     # check if sticker exists and get sticker object if it does
@@ -370,8 +379,10 @@ async def rename_emoji(ctx: interactions.CommandContext, **kwargs):
     """
     current_name = kwargs["emoji-name"]
     new_name = kwargs["new-emoji-name"]
-    
-    if not await check_channel_is_allowed(ctx.channel_id, ctx) or not await check_emoji_is_modifiable(current_name, ctx):
+
+    if not await check_channel_is_allowed(ctx.channel_id, ctx):
+        return
+    if not await check_emoji_is_modifiable(current_name, ctx):
         return
 
     guild = await ctx.get_guild()
@@ -431,8 +442,10 @@ async def rename_sticker(ctx: interactions.CommandContext, **kwargs):
     """
     current_name = kwargs["sticker-name"]
     new_name = kwargs["new-sticker-name"]
-    
+
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
+        return
+    if not await check_emoji_is_modifiable(current_name, ctx):
         return
 
     if ":" in new_name:
@@ -488,10 +501,11 @@ async def change_emoji(ctx: interactions.CommandContext, **kwargs):
     """
     emoji_name = kwargs["emoji-name"]
     image_url = kwargs["image-url"]
-    
-    if not await check_channel_is_allowed(ctx.channel_id, ctx) or not await check_emoji_is_modifiable(emoji_name, ctx):
-        return
 
+    if not await check_channel_is_allowed(ctx.channel_id, ctx):
+        return
+    if not await check_emoji_is_modifiable(emoji_name, ctx):
+        return
 
     if not validate_image_url(image_url):
         await ctx.send("Invalid image URL", ephemeral=True)
@@ -549,10 +563,12 @@ async def change_sticker(ctx: interactions.CommandContext, **kwargs):
     """
     sticker_name = kwargs["sticker-name"]
     image_url = kwargs["image-url"]
-    
+
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
-    
+    if not await check_emoji_is_modifiable(sticker_name, ctx):
+        return
+
     if not validate_image_url(image_url):
         await ctx.send("Invalid image URL", ephemeral=True)
         return
