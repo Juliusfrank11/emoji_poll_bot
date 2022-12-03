@@ -40,6 +40,25 @@ async def check_channel_is_allowed(channel_id, ctx):
         )
         return False
 
+async def check_emoji_is_modifiable(emoji_name, ctx):
+    """Check if an emoji is modifiable
+
+    Args:
+        emoji_name (str): name of emoji
+        ctx (interactions.Context): context object
+
+    Returns:
+        bool: whether emoji is modifiable
+    """
+    guild = ctx.get_guild()
+    existing_emojis = guild.emojis
+    emoji = get_existing_emoji_by_name(emoji_name)
+    if emoji.id in PROTECTED_EMOTE_IDS:
+        await ctx.send("This emoji is protected and can not be modified", ephemeral=True)
+        return False
+    else:
+        return True
+
 
 def save_poll_to_memory(guild_id, channel_id, message_id, poll_type):
     """Save a poll to memory
@@ -244,7 +263,7 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
         ctx (interactions.CommandContext): context of the command, inherited from decorator
         emoji_name (str): name of emoji to delete
     """
-    if not await check_channel_is_allowed(ctx.channel_id, ctx):
+    if not await check_channel_is_allowed(ctx.channel_id, ctx) or not await check_emoji_is_modifiable(emoji_name, ctx):
         return
 
     emoji_name = kwargs["emoji-name"]
@@ -349,7 +368,7 @@ async def rename_emoji(ctx: interactions.CommandContext, **kwargs):
         current_name (str): current name of the emoji
         new_name (str): proposed new name of the emoji
     """
-    if not await check_channel_is_allowed(ctx.channel_id, ctx):
+    if not await check_channel_is_allowed(ctx.channel_id, ctx) or not await check_emoji_is_modifiable(emoji_name, ctx):
         return
 
     current_name = kwargs["emoji-name"]
@@ -412,6 +431,9 @@ async def rename_sticker(ctx: interactions.CommandContext, **kwargs):
     """
     current_name = kwargs["sticker-name"]
     new_name = kwargs["new-sticker-name"]
+    
+    if not await check_channel_is_allowed(ctx.channel_id, ctx):
+        return
 
     if ":" in new_name:
         ctx.send("Sticker name cannot contain colons", ephemeral=True)
@@ -464,7 +486,7 @@ async def change_emoji(ctx: interactions.CommandContext, **kwargs):
         emoji_name (str): name of the emoji to change
         image_url (str): url of the image to change the emoji to
     """
-    if not await check_channel_is_allowed(ctx.channel_id, ctx):
+    if not await check_channel_is_allowed(ctx.channel_id, ctx) or not await check_emoji_is_modifiable(emoji_name, ctx):
         return
 
     emoji_name = kwargs["emoji-name"]
