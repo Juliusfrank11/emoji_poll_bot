@@ -368,7 +368,7 @@ async def rename_emoji(ctx: interactions.CommandContext, **kwargs):
         current_name (str): current name of the emoji
         new_name (str): proposed new name of the emoji
     """
-    if not await check_channel_is_allowed(ctx.channel_id, ctx) or not await check_emoji_is_modifiable(emoji_name, ctx):
+    if not await check_channel_is_allowed(ctx.channel_id, ctx) or not await check_emoji_is_modifiable(current_name, ctx):
         return
 
     current_name = kwargs["emoji-name"]
