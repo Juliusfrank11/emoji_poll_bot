@@ -6,6 +6,12 @@ The bot uses slash commands to create polls.
 - `/delete-emoji`
 - `/add-sticker`
 - `/delete-sticker`
+- `/rename-emoji`
+- `/rename-sticker`
+- `/change-emoji` (change the image)
+- `/change-sticker`
+
+Message URLs for active polls can be obtained through the `show-polls` command 
 
 Various settings for the bot can be edited in `config.py`
 

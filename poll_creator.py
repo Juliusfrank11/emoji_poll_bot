@@ -135,11 +135,11 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
         url (str): URL of image to be made into an emoji
         name (str): name of the emoji
     """
-    if not await check_channel_is_allowed(ctx.channel_id, ctx):
-        return
-
     emoji_name = kwargs["name"]
     emoji_url = kwargs["url"]
+
+    if not await check_channel_is_allowed(ctx.channel_id, ctx):
+        return
 
     guild = await ctx.get_guild()
     existing_emojis = guild.emojis
@@ -204,11 +204,11 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
         url (str): URL of image to be made into an sticker
         name (str): name of the sticker
     """
-    if not await check_channel_is_allowed(ctx.channel_id, ctx):
-        return
-
     sticker_name = kwargs["name"]
     sticker_url = kwargs["url"]
+    
+    if not await check_channel_is_allowed(ctx.channel_id, ctx):
+        return
 
     guild = await ctx.get_guild()
     existing_stickers = guild.stickers
@@ -263,10 +263,10 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
         ctx (interactions.CommandContext): context of the command, inherited from decorator
         emoji_name (str): name of emoji to delete
     """
+    emoji_name = kwargs["emoji-name"]
+    
     if not await check_channel_is_allowed(ctx.channel_id, ctx) or not await check_emoji_is_modifiable(emoji_name, ctx):
         return
-
-    emoji_name = kwargs["emoji-name"]
 
     # check if emoji exists and get emoji object if it does
     guild = await ctx.get_guild()
@@ -312,10 +312,10 @@ async def delete_sticker(ctx: interactions.CommandContext, **kwargs):
         ctx (interactions.CommandContext): context of the command, inherited from decorator
         sticker_name (str): name of sticker to delete
     """
+    sticker_name = kwargs["sticker-name"]
+    
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
-
-    sticker_name = kwargs["sticker-name"]
 
     # check if sticker exists and get sticker object if it does
     guild = await ctx.get_guild()
@@ -368,11 +368,11 @@ async def rename_emoji(ctx: interactions.CommandContext, **kwargs):
         current_name (str): current name of the emoji
         new_name (str): proposed new name of the emoji
     """
-    if not await check_channel_is_allowed(ctx.channel_id, ctx) or not await check_emoji_is_modifiable(current_name, ctx):
-        return
-
     current_name = kwargs["emoji-name"]
     new_name = kwargs["new-emoji-name"]
+    
+    if not await check_channel_is_allowed(ctx.channel_id, ctx) or not await check_emoji_is_modifiable(current_name, ctx):
+        return
 
     guild = await ctx.get_guild()
     existing_emojis = guild.emojis
@@ -486,11 +486,12 @@ async def change_emoji(ctx: interactions.CommandContext, **kwargs):
         emoji_name (str): name of the emoji to change
         image_url (str): url of the image to change the emoji to
     """
+    emoji_name = kwargs["emoji-name"]
+    image_url = kwargs["image-url"]
+    
     if not await check_channel_is_allowed(ctx.channel_id, ctx) or not await check_emoji_is_modifiable(emoji_name, ctx):
         return
 
-    emoji_name = kwargs["emoji-name"]
-    image_url = kwargs["image-url"]
 
     if not validate_image_url(image_url):
         await ctx.send("Invalid image URL", ephemeral=True)
@@ -546,12 +547,12 @@ async def change_sticker(ctx: interactions.CommandContext, **kwargs):
         sticker_name (str): name of the sticker to change
         image_url (str): url of the image to change the sticker to
     """
-    if not await check_channel_is_allowed(ctx.channel_id, ctx):
-        return
-
     sticker_name = kwargs["sticker-name"]
     image_url = kwargs["image-url"]
-
+    
+    if not await check_channel_is_allowed(ctx.channel_id, ctx):
+        return
+    
     if not validate_image_url(image_url):
         await ctx.send("Invalid image URL", ephemeral=True)
         return
