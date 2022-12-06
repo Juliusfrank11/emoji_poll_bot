@@ -6,7 +6,13 @@ import discord
 import requests
 from PIL import Image
 
-from config import *
+from config import MINIMUM_VOTES_FOR_POLL
+from config import POLL_NO_EMOJI
+from config import POLL_PASS_THRESHOLD
+from config import POLL_YES_EMOJI
+from config import PRIVILEGED_USER_IDS
+from config import PRIVILEGED_USER_VOTE_WEIGHT
+from config import TEMP_IMAGE_FILE_NAME
 
 
 def validate_emoji_name(name: str):
@@ -207,3 +213,15 @@ def get_emoji_formatted_str(emoji):
     else:
         animated_str = ""
     return f"<{animated_str}:{emoji.name}:{emoji.id}>"
+
+
+def display_percent_str(n):
+    """Get a string to print for a percentage
+
+    Args:
+        n (float): percentage to print
+
+    Returns:
+        str: string to print
+    """
+    return str(round(n * 100, 2)) + "%"

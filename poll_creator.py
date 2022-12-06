@@ -2,8 +2,16 @@ import os
 
 import interactions
 
-from config import *
-from utils import *
+from config import ALLOWED_CHANNEL_IDS
+from config import POLL_NO_EMOJI
+from config import POLL_YES_EMOJI
+from config import PROTECTED_EMOTE_NAMES
+from config import TOKEN_FILE_NAME
+from utils import display_percent_str
+from utils import get_emoji_formatted_str
+from utils import get_existing_emoji_by_name
+from utils import validate_emoji_name
+from utils import validate_image_url
 
 # Setup
 ## read token from file
@@ -161,11 +169,13 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
     if emoji_name in existing_emoji_names:
         await ctx.send("Emoji name already on this server", ephemeral=True)
         return
-    
-    if len([e for e in existing_emojis if not e.animated]) >= emoji_limits[guild.premium_tier]:
+
+    if (
+        len([e for e in existing_emojis if not e.animated])
+        >= emoji_limits[guild.premium_tier]
+    ):
         await ctx.send("Emoji limit reached for this server", ephemeral=True)
         return
-        
 
     if not validate_emoji_name(emoji_name):
         await ctx.send(
@@ -259,7 +269,7 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
     poll_id = await create_poll_message(
         ctx,
         f"POLL FOR NEW STICKER: :{sticker_name}:",
-        f"Should we add this sticker? (full size version below this poll)",
+        "Should we add this sticker? (full size version below this poll)",
         sticker_url,
         sticker_url,
     )
@@ -359,7 +369,7 @@ async def delete_sticker(ctx: interactions.CommandContext, **kwargs):
     poll_id = await create_poll_message(
         ctx,
         f"POLL FOR DELETING STICKER: :{sticker_name}:",
-        f"Should we delete this sticker? (full size version below this poll)",
+        "Should we delete this sticker? (full size version below this poll)",
         f"https://cdn.discordapp.com/stickers/{sticker.id}.png",
         f"https://cdn.discordapp.com/stickers/{sticker.id}.png",
     )
@@ -605,7 +615,7 @@ async def change_sticker(ctx: interactions.CommandContext, **kwargs):
     poll_id = await create_poll_message(
         ctx,
         f"POLL FOR CHANGING STICKER: :{sticker_name}:",
-        f"Should we change this sticker to this image?",
+        "Should we change this sticker to this image?",
         image_url,
         image_url,
     )
@@ -661,6 +671,36 @@ async def show_polls(ctx: interactions.CommandContext):
         await ctx.send(message, ephemeral=True)
     else:
         await ctx.send("No active polls", ephemeral=True)
+
+
+@bot.command(
+    name="show-limits",
+    description="Show the current emoji and sticker limits for the server",
+)
+async def show_limits(ctx: interactions.CommandContext):
+    """Show the current emoji and sticker limits for the server
+
+    Args:
+        ctx (interactions.CommandContext): command context, inherited from decorator
+    """
+    guild = await ctx.get_guild()
+    premium_tier = guild.premium_tier
+    emoji_count = len([e for e in guild.emojis if not e.animated])
+    animated_emoji_count = len([e for e in guild.emojis if e.animated])
+    sticker_count = len(guild.stickers)
+
+    emoji_limit = emoji_limits[premium_tier]
+    animated_emoji_limit = 50
+    sticker_limit = sticker_limits[premium_tier]
+
+    emoji_count_message = f"{emoji_limit - emoji_count} emoji slots left ({display_percent_str(emoji_count/emoji_limit)} used)"
+    animated_emoji_count_message = f"{animated_emoji_limit - animated_emoji_count} animated emoji slots left ({display_percent_str(animated_emoji_count/animated_emoji_limit)} used)"
+    sticker_count_message = f"{sticker_limit - sticker_count} sticker slots left ({display_percent_str(sticker_count/sticker_limit)} used)"
+
+    await ctx.send(
+        f"{emoji_count_message}\n{animated_emoji_count_message}\n{sticker_count_message}",
+        ephemeral=True,
+    )
 
 
 bot.start()
