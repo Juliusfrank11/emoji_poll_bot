@@ -6,8 +6,19 @@ import os
 import discord
 import requests
 
-from config import *
-from utils import *
+from config import AUTOMATICALLY_ADD_EMOJIS
+from config import MAX_IMAGE_FILE_SIZE
+from config import MAX_IMAGE_SIZE
+from config import POLL_DURATION
+from config import TEMP_IMAGE_FILE_NAME
+from config import TOKEN_FILE_NAME
+from config import WAIT_TIME_BETWEEN_CHECKS
+from utils import get_emoji_name_from_poll_message
+from utils import get_existing_emoji_by_name
+from utils import get_poll_result
+from utils import get_print_string_for_poll_result
+from utils import get_votes
+from utils import make_and_resize_image_from_url
 
 # Setup
 ## read token from file
@@ -230,6 +241,11 @@ async def change_poll_result(poll: discord.Message, poll_type: str):
                     stickers=[new_sticker],
                     reference=poll,
                 )
+        if not emoji_or_sticker_found:
+            await poll.channel.send(
+                "Failed to change emoji/sticker, emoji/sticker not found",
+                reference=poll,
+            )
     else:
         await poll.channel.send(
             "Failed to add emoji/sticker, image could not be retrieved, Status code: "
