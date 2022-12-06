@@ -11,6 +11,20 @@ f = open(TOKEN_FILE_NAME, "r")
 token = f.read().strip()
 f.close()
 
+# emoji and sticker limits for premium tiers
+emoji_limits = {
+    0: 50,
+    1: 100,
+    2: 150,
+    3: 250,
+}
+sticker_limits = {
+    0: 5,
+    1: 15,
+    2: 30,
+    3: 60,
+}
+
 ## make active_polls directory if it doesn't exist
 if "active_polls" not in os.listdir():
     os.mkdir("active_polls")
@@ -147,6 +161,11 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
     if emoji_name in existing_emoji_names:
         await ctx.send("Emoji name already on this server", ephemeral=True)
         return
+    
+    if len(existing_emojis) >= emoji_limits[guild.premium_tier]:
+        await ctx.send("Emoji limit reached for this server", ephemeral=True)
+        return
+        
 
     if not validate_emoji_name(emoji_name):
         await ctx.send(
@@ -218,6 +237,9 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
     existing_sticker_names = [emoji.name for emoji in existing_stickers]
     if sticker_name in existing_sticker_names:
         await ctx.send("Sticker name already exists on this server", ephemeral=True)
+        return
+    if len(existing_stickers) >= sticker_limits[guild.premium_tier]:
+        await ctx.send("Sticker limit reached for this server", ephemeral=True)
         return
 
     # not sure if there are any restrictions on sticker names,

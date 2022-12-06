@@ -2,9 +2,13 @@
     "cSpell.words": [
         "addemoji",
         "addsticker",
+        "changeemoji",
+        "changesticker",
         "deleteemoji",
         "deletesticker",
         "getbuffer",
-        "nbytes"
+        "nbytes",
+        "renameemoji",
+        "renamesticker"
     ]
 }
