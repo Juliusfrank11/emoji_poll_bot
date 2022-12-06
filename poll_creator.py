@@ -162,7 +162,7 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
         await ctx.send("Emoji name already on this server", ephemeral=True)
         return
     
-    if len(existing_emojis) >= emoji_limits[guild.premium_tier]:
+    if len([e for e in existing_emojis if not e.animated]) >= emoji_limits[guild.premium_tier]:
         await ctx.send("Emoji limit reached for this server", ephemeral=True)
         return
         
