@@ -172,9 +172,19 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
 
     if (
         len([e for e in existing_emojis if not e.animated])
+        + len(
+            [
+                p
+                for p in os.listdir(f"active_poll/{guild.id}/{ctx.channel_id}")
+                if p.endswith("add_emoji")
+            ]
+        )
         >= emoji_limits[guild.premium_tier]
     ):
-        await ctx.send("Emoji limit reached for this server", ephemeral=True)
+        await ctx.send(
+            "Emoji limit reached for this server OR too many active adding polls",
+            ephemeral=True,
+        )
         return
 
     if not validate_emoji_name(emoji_name):
@@ -248,8 +258,21 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
     if sticker_name in existing_sticker_names:
         await ctx.send("Sticker name already exists on this server", ephemeral=True)
         return
-    if len(existing_stickers) >= sticker_limits[guild.premium_tier]:
-        await ctx.send("Sticker limit reached for this server", ephemeral=True)
+    if (
+        len(existing_stickers)
+        + len(
+            [
+                p
+                for p in os.listdir(f"active_poll/{guild.id}/{ctx.channel_id}")
+                if p.endswith("add_sticker")
+            ]
+        )
+        >= sticker_limits[guild.premium_tier]
+    ):
+        await ctx.send(
+            "Sticker limit reached for this server OR too many active adding polls",
+            ephemeral=True,
+        )
         return
 
     # not sure if there are any restrictions on sticker names,
@@ -363,7 +386,7 @@ async def delete_sticker(ctx: interactions.CommandContext, **kwargs):
     existing_stickers = guild.stickers
     sticker = get_existing_emoji_by_name(sticker_name, existing_stickers)
     if sticker is None:
-        ctx.send("Sticker does not exist on this server", ephemeral=True)
+        await ctx.send("Sticker does not exist on this server", ephemeral=True)
         return
 
     poll_id = await create_poll_message(
