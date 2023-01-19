@@ -175,7 +175,7 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
         + len(
             [
                 p
-                for p in os.listdir(f"active_poll/{guild.id}/{ctx.channel_id}")
+                for p in os.listdir(f"active_polls/{guild.id}/{ctx.channel_id}")
                 if p.endswith("add_emoji")
             ]
         )
@@ -263,7 +263,7 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
         + len(
             [
                 p
-                for p in os.listdir(f"active_poll/{guild.id}/{ctx.channel_id}")
+                for p in os.listdir(f"active_polls/{guild.id}/{ctx.channel_id}")
                 if p.endswith("add_sticker")
             ]
         )
