@@ -176,7 +176,7 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
             [
                 p
                 for p in os.listdir(f"active_polls/{guild.id}/{ctx.channel_id}")
-                if p.endswith("add_emoji")
+                if p.endswith("addemoji")
             ]
         )
         >= emoji_limits[guild.premium_tier]
@@ -264,7 +264,7 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
             [
                 p
                 for p in os.listdir(f"active_polls/{guild.id}/{ctx.channel_id}")
-                if p.endswith("add_sticker")
+                if p.endswith("addsticker")
             ]
         )
         >= sticker_limits[guild.premium_tier]
