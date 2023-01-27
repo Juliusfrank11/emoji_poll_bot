@@ -165,8 +165,7 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
 
     guild = await ctx.get_guild()
     existing_emojis = guild.emojis
-    existing_emoji_names = [emoji.name for emoji in existing_emojis]
-    if emoji_name in existing_emoji_names:
+    if get_existing_emoji_by_name(emoji_name, existing_emojis) is not None:
         await ctx.send("Emoji name already on this server", ephemeral=True)
         return
 
@@ -254,8 +253,7 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
 
     guild = await ctx.get_guild()
     existing_stickers = guild.stickers
-    existing_sticker_names = [emoji.name for emoji in existing_stickers]
-    if sticker_name in existing_sticker_names:
+    if get_existing_emoji_by_name(sticker_name,existing_stickers) is not None:
         await ctx.send("Sticker name already exists on this server", ephemeral=True)
         return
     if (

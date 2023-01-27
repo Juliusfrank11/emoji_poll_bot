@@ -225,3 +225,4 @@ def display_percent_str(n):
         str: string to print
     """
     return str(round(n * 100, 2)) + "%"
+
