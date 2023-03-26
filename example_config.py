@@ -34,3 +34,5 @@ ALLOWED_CHANNEL_IDS = [
 ]
 # Emoji names that can not be modified by the bot
 PROTECTED_EMOTE_NAMES = []
+# Hours to post poll updates, in UTC
+POLL_UPDATE_POST_TIMES = []

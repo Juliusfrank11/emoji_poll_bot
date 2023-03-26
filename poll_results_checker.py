@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import datetime as dt
 import logging
 import os
@@ -10,6 +11,7 @@ from config import AUTOMATICALLY_ADD_EMOJIS
 from config import MAX_IMAGE_FILE_SIZE
 from config import MAX_IMAGE_SIZE
 from config import POLL_DURATION
+from config import POLL_UPDATE_POST_TIMES
 from config import TEMP_IMAGE_FILE_NAME
 from config import TOKEN_FILE_NAME
 from config import WAIT_TIME_BETWEEN_CHECKS
@@ -254,8 +256,36 @@ async def change_poll_result(poll: discord.Message, poll_type: str):
         )
 
 
+async def post_update():
+    """Post updates"""
+    polls = []
+    for channel in client.get_all_channels():
+        for (
+            guild_id,
+            channel_id,
+            message_id,
+            poll_type,
+        ) in get_active_polls_list_from_memory():
+            for channel_id in os.listdir(f"active_polls/{guild_id}"):
+                if channel.id == channel_id:
+                    for poll in os.listdir(f"active_polls/{guild_id}/{channel_id}"):
+                        poll_id, poll_type = poll.split("_")
+                        polls.append(
+                            "https://discord.com/channels/{}/{}/{} ".format(
+                                guild_id, channel_id, poll_id
+                            )
+                            + poll_type
+                        )
+        if len(polls) > 0:
+            message = "Here's an update on currently active polls:\n"
+            while len(message) < 2000 and len(polls) > 0:
+                message += "> " + polls.pop(0) + "\n"
+            await channel.send(message, ephemeral=True)
+
+
 @client.event
 async def on_ready():
+    last_update_hour = -1
     while True:
         for (
             guild_id,
@@ -311,6 +341,15 @@ async def on_ready():
                     )
                 except FileNotFoundError:
                     pass
+        # post updates
+        hour_right_now = dt.datetime.utcnow().hour
+        if (
+            hour_right_now in POLL_UPDATE_POST_TIMES
+            and hour_right_now != last_update_hour
+        ):
+            await post_update()
+            last_update_hour = hour_right_now
+
         await asyncio.sleep(WAIT_TIME_BETWEEN_CHECKS)
 
 

@@ -253,7 +253,7 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
 
     guild = await ctx.get_guild()
     existing_stickers = guild.stickers
-    if get_existing_emoji_by_name(sticker_name,existing_stickers) is not None:
+    if get_existing_emoji_by_name(sticker_name, existing_stickers) is not None:
         await ctx.send("Sticker name already exists on this server", ephemeral=True)
         return
     if (
@@ -307,7 +307,7 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
         interactions.Option(
             type=interactions.OptionType.STRING,
             name="emoji-name",
-            description="emoji name, WITHOUT the colons",
+            description="emoji name",
             focused=False,
             required=True,
         )
@@ -321,7 +321,7 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
         ctx (interactions.CommandContext): context of the command, inherited from decorator
         emoji_name (str): name of emoji to delete
     """
-    emoji_name = kwargs["emoji-name"]
+    emoji_name = kwargs["emoji-name"].replace(":", "")
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
@@ -409,14 +409,14 @@ async def delete_sticker(ctx: interactions.CommandContext, **kwargs):
         interactions.Option(
             type=interactions.OptionType.STRING,
             name="emoji-name",
-            description="CURRENT emoji name, WITHOUT the colons",
+            description="CURRENT emoji name",
             focused=False,
             required=True,
         ),
         interactions.Option(
             type=interactions.OptionType.STRING,
             name="new-emoji-name",
-            description="NEW emoji name, WITHOUT the colons",
+            description="NEW emoji name",
             focused=False,
             required=True,
         ),
@@ -430,8 +430,8 @@ async def rename_emoji(ctx: interactions.CommandContext, **kwargs):
         current_name (str): current name of the emoji
         new_name (str): proposed new name of the emoji
     """
-    current_name = kwargs["emoji-name"]
-    new_name = kwargs["new-emoji-name"]
+    current_name = kwargs["emoji-name"].replace(":", "")
+    new_name = kwargs["new-emoji-name"].replace(":", "")
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
@@ -531,7 +531,7 @@ async def rename_sticker(ctx: interactions.CommandContext, **kwargs):
         interactions.Option(
             type=interactions.OptionType.STRING,
             name="emoji-name",
-            description="emoji name, WITHOUT the colons",
+            description="emoji name",
             focused=False,
             required=True,
         ),
@@ -552,7 +552,7 @@ async def change_emoji(ctx: interactions.CommandContext, **kwargs):
         emoji_name (str): name of the emoji to change
         image_url (str): url of the image to change the emoji to
     """
-    emoji_name = kwargs["emoji-name"]
+    emoji_name = kwargs["emoji-name"].replace(":", "")
     image_url = kwargs["image-url"]
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
