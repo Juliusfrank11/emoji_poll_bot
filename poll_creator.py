@@ -9,6 +9,7 @@ from config import PROTECTED_EMOTE_NAMES
 from config import TOKEN_FILE_NAME
 from utils import display_percent_str
 from utils import extract_emoji_name_from_syntax
+from utils import pretty_poll_type
 from utils import get_emoji_formatted_str
 from utils import get_existing_emoji_by_name
 from utils import validate_emoji_name
@@ -678,11 +679,12 @@ async def show_polls(ctx: interactions.CommandContext):
         for channel_id in os.listdir(f"active_polls/{guild.id}"):
             for poll in os.listdir(f"active_polls/{guild.id}/{channel_id}"):
                 poll_id, poll_type = poll.split("_")
+                # TODO: figure out how to print emoji name like in poll_results_check.post_update
+                # Might need to finally migrate off interactions and make these commands properly
                 polls.append(
-                    "https://discord.com/channels/{}/{}/{} ".format(
-                        guild.id, channel_id, poll_id
+                    "https://discord.com/channels/{}/{}/{} {}".format(
+                        guild.id, channel_id, poll_id, pretty_poll_type(poll_type)
                     )
-                    + poll_type
                 )
     else:
         await ctx.send("No active polls", ephemeral=True)

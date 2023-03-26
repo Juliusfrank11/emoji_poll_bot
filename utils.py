@@ -98,41 +98,45 @@ async def get_poll_result(
 
 
 async def get_print_string_for_poll_result(
-    message: discord.Message, self_bot_id: int, yes_count=None, no_count=None
+    message: discord.Message,
+    self_bot_id: int,
+    poll_type: str,
+    yes_count=None,
+    no_count=None,
 ):
     """Get a string to print for the result of a poll
 
     Args:
         message (discord.Message): message object of the poll
         self_bot_id (int): ID of the bot running the check (to ignore its own reactions)
+        poll_type (str): string indicating the poll type, e.g. "changeemoji"
         yes_count (int, Optional): number of votes for yes, if already pre-calculated
         no_count (int, Optional): number of votes for no, if already pre-calculated
 
     Returns:
         str: string to print
     """
+
+    poll_short_title = f"***Poll to {pretty_poll_type(poll_type)} `{get_emoji_name_from_poll_message(message)}` results***:\n"
+
     if yes_count is None and no_count is None:
         yes_count, no_count = await get_votes(message, self_bot_id)
     if yes_count + no_count < MINIMUM_VOTES_FOR_POLL or yes_count + no_count == 0:
         return f"Poll didn't reach the minimum number of votes ({MINIMUM_VOTES_FOR_POLL}) to pass. Had only {yes_count + no_count} vote(s)."
-    result = round(yes_count / (yes_count + no_count) * 100, 2)
+    result = display_percent_str(yes_count / (yes_count + no_count))
     poll_passed = await get_poll_result(message, self_bot_id)
     if poll_passed:
         return (
-            f"Poll passed with {yes_count} vote(s) for and {no_count} vote(s) against, leading to a {result}"
-            + "%"
-            + " show in favor, above the threshold of "
-            + str(round(POLL_PASS_THRESHOLD * 100, 2))
-            + "%"
+            poll_short_title
+            + f"Poll passed with {yes_count} vote(s) for and {no_count} vote(s) against, leading to a {result} show in favor, above the threshold of "
+            + display_percent_str(POLL_PASS_THRESHOLD)
             + " needed to pass."
         )
     else:
         return (
-            f"Poll failed with {yes_count} vote(s) for and {no_count} vote(s) against, leading to a {result}"
-            + "%"
-            + " show in favor, below the threshold of "
-            + str(round(POLL_PASS_THRESHOLD * 100, 2))
-            + "%"
+            poll_short_title
+            + f"Poll failed with {yes_count} vote(s) for and {no_count} vote(s) against, leading to a {result} show in favor, below the threshold of "
+            + display_percent_str(POLL_PASS_THRESHOLD)
             + " needed to pass."
         )
 
@@ -226,14 +230,15 @@ def display_percent_str(n):
     """
     return str(round(n * 100, 2)) + "%"
 
+
 def extract_emoji_name_from_syntax(emoji_syntax):
-    """Extract emoji name from a discord 
+    """Extract emoji name from a discord
 
     Args:
         emoji_syntax (str): discord-formatted string in `<:NAME:ID>` (e.g. `<:BigChungus:54897465321321>`)
 
     Returns:
-        str: emoji name if found, otherwise empty string
+        str: emoji name if found, returns the string if format did not produce a match
     """
     match = re.match(r"<:(\w+):\d+>", emoji_syntax)
 
@@ -241,4 +246,21 @@ def extract_emoji_name_from_syntax(emoji_syntax):
         emoji_name = match.group(1)
         return emoji_name
     else:
-        return ""
+        return emoji_syntax
+
+
+def pretty_poll_type(poll_type):
+    """Puts a space between the poll type and the object it is about, e.g. "changeemoji" -> "change emoji"
+
+    Args:
+        poll_type (str): string representing the poll type of the poll
+
+    Returns:
+        str: string with a space as described above
+    """
+    pretty_name = poll_type
+    emoji_like_names = ("emoji", "sticker")
+    for name in emoji_like_names:
+        if name in poll_type:
+            pretty_name = pretty_name.replace(name, " " + name)
+    return pretty_name

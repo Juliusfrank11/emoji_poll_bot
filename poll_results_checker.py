@@ -21,6 +21,7 @@ from utils import get_poll_result
 from utils import get_print_string_for_poll_result
 from utils import get_votes
 from utils import make_and_resize_image_from_url
+from utils import pretty_poll_type
 
 # Setup
 ## read token from file
@@ -267,20 +268,25 @@ async def post_update():
             poll_type,
         ) in get_active_polls_list_from_memory():
             for channel_id in os.listdir(f"active_polls/{guild_id}"):
-                if channel.id == channel_id:
+                if channel.id == int(channel_id):
                     for poll in os.listdir(f"active_polls/{guild_id}/{channel_id}"):
                         poll_id, poll_type = poll.split("_")
                         polls.append(
-                            "https://discord.com/channels/{}/{}/{} ".format(
-                                guild_id, channel_id, poll_id
+                            "https://discord.com/channels/{}/{}/{} {} `{}`".format(
+                                guild_id,
+                                channel_id,
+                                poll_id,
+                                pretty_poll_type(poll_type),
+                                get_emoji_name_from_poll_message(
+                                    await channel.fetch_message(message_id)
+                                ),
                             )
-                            + poll_type
                         )
         if len(polls) > 0:
             message = "Here's an update on currently active polls:\n"
             while len(message) < 2000 and len(polls) > 0:
                 message += "> " + polls.pop(0) + "\n"
-            await channel.send(message, ephemeral=True)
+            await channel.send(message)
 
 
 @client.event
@@ -306,6 +312,7 @@ async def on_ready():
                         await get_print_string_for_poll_result(
                             message,
                             self_bot_id=client.user.id,
+                            poll_type=poll_type,
                             yes_count=yes_count,
                             no_count=no_count,
                         ),
