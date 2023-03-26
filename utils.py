@@ -225,3 +225,20 @@ def display_percent_str(n):
         str: string to print
     """
     return str(round(n * 100, 2)) + "%"
+
+def extract_emoji_name_from_syntax(emoji_syntax):
+    """Extract emoji name from a discord 
+
+    Args:
+        emoji_syntax (str): discord-formatted string in `<:NAME:ID>` (e.g. `<:BigChungus:54897465321321>`)
+
+    Returns:
+        str: emoji name if found, otherwise empty string
+    """
+    match = re.match(r"<:(\w+):\d+>", emoji_syntax)
+
+    if match:
+        emoji_name = match.group(1)
+        return emoji_name
+    else:
+        return ""

@@ -8,6 +8,7 @@ from config import POLL_YES_EMOJI
 from config import PROTECTED_EMOTE_NAMES
 from config import TOKEN_FILE_NAME
 from utils import display_percent_str
+from utils import extract_emoji_name_from_syntax
 from utils import get_emoji_formatted_str
 from utils import get_existing_emoji_by_name
 from utils import validate_emoji_name
@@ -321,7 +322,7 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
         ctx (interactions.CommandContext): context of the command, inherited from decorator
         emoji_name (str): name of emoji to delete
     """
-    emoji_name = kwargs["emoji-name"].replace(":", "")
+    emoji_name = extract_emoji_name_from_syntax(kwargs["emoji-name"])
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
@@ -430,8 +431,8 @@ async def rename_emoji(ctx: interactions.CommandContext, **kwargs):
         current_name (str): current name of the emoji
         new_name (str): proposed new name of the emoji
     """
-    current_name = kwargs["emoji-name"].replace(":", "")
-    new_name = kwargs["new-emoji-name"].replace(":", "")
+    current_name = extract_emoji_name_from_syntax(kwargs["emoji-name"])
+    new_name = extract_emoji_name_from_syntax(kwargs["new-emoji-name"])
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
@@ -552,7 +553,7 @@ async def change_emoji(ctx: interactions.CommandContext, **kwargs):
         emoji_name (str): name of the emoji to change
         image_url (str): url of the image to change the emoji to
     """
-    emoji_name = kwargs["emoji-name"].replace(":", "")
+    emoji_name = extract_emoji_name_from_syntax(kwargs["emoji-name"])
     image_url = kwargs["image-url"]
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
