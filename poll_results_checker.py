@@ -287,6 +287,8 @@ async def post_update():
             while polls:
                 while len(message) + len(polls[0]) < 2000 and len(polls) > 0:
                     message += "> " + polls.pop(0) + "\n"
+                    if not polls:
+                        break
                 await channel.send(message)
                 message = ""
 
