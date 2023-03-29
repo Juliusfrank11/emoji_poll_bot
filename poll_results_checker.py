@@ -272,7 +272,7 @@ async def post_update():
                     for poll in os.listdir(f"active_polls/{guild_id}/{channel_id}"):
                         poll_id, poll_type = poll.split("_")
                         polls.append(
-                            "https://discord.com/channels/{}/{}/{} {} `{}`".format(
+                            "> https://discord.com/channels/{}/{}/{} {} `{}`\n".format(
                                 guild_id,
                                 channel_id,
                                 poll_id,
@@ -286,8 +286,8 @@ async def post_update():
             message = "Here's an update on currently active polls:\n"
             while len(message) < 2000 and len(polls) > 0:
                 try:
-                    if len(message + "> " + polls[0] + "\n") < 2000:
-                        message += "> " + polls.pop(0) + "\n"
+                    if len(message + polls[0]) < 2000:
+                        message += polls.pop(0)
                     else:
                         await channel.send(message)
                         message = ""
