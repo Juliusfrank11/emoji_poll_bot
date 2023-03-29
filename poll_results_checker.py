@@ -284,9 +284,11 @@ async def post_update():
                         )
         if len(polls) > 0:
             message = "Here's an update on currently active polls:\n"
-            while len(message) < 2000 and len(polls) > 0:
-                message += "> " + polls.pop(0) + "\n"
-            await channel.send(message)
+            while polls:
+                while len(message) + len(polls[0]) < 2000 and len(polls) > 0:
+                    message += "> " + polls.pop(0) + "\n"
+                await channel.send(message)
+                message = ""
 
 
 @client.event
