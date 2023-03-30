@@ -281,13 +281,12 @@ async def post_update():
                             poll_id,
                             pretty_poll_type(poll_type),
                             get_emoji_name_from_poll_message(
-                                await channel.fetch_message(message_id)
+                                await channel.fetch_message(poll_id)
                             ),
                         )
                     )
     # put together and post update message
     for channel_id_to_post_to, polls in channels_to_polls.items():
-        print(polls)
         if len(polls) > 0:
             channel_to_post_to = client.get_channel(channel_id_to_post_to)
             message = "Here's an update on currently active polls:\n"
