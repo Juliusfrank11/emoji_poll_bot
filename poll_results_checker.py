@@ -259,30 +259,36 @@ async def change_poll_result(poll: discord.Message, poll_type: str):
 
 async def post_update():
     """Post updates"""
-    polls = []
-    for channel in client.get_all_channels():
-        for (
-            guild_id,
-            channel_id,
-            message_id,
-            poll_type,
-        ) in get_active_polls_list_from_memory():
-            for channel_id in os.listdir(f"active_polls/{guild_id}"):
-                if channel.id == int(channel_id):
-                    for poll in os.listdir(f"active_polls/{guild_id}/{channel_id}"):
-                        poll_id, poll_type = poll.split("_")
-                        polls.append(
-                            "> https://discord.com/channels/{}/{}/{} {} `{}`\n".format(
-                                guild_id,
-                                channel_id,
-                                poll_id,
-                                pretty_poll_type(poll_type),
-                                get_emoji_name_from_poll_message(
-                                    await channel.fetch_message(message_id)
-                                ),
-                            )
+    channels_to_polls = {}
+    for (
+        guild_id,
+        channel_id,
+        message_id,
+        poll_type,
+    ) in get_active_polls_list_from_memory():
+        for channel_id in os.listdir(f"active_polls/{guild_id}"):
+            # if there are active polls, create strings for the update message
+            if len(os.listdir(f"active_polls/{guild_id}/{channel_id}")) > 0:
+                channel_id = int(channel_id)
+                channels_to_polls[channel_id] = []
+                channel = client.get_channel()
+                for poll in os.listdir(f"active_polls/{guild_id}/{channel_id}"):
+                    poll_id, poll_type = poll.split("_")
+                    channels_to_polls[channel_id].append(
+                        "> https://discord.com/channels/{}/{}/{} {} `{}`\n".format(
+                            guild_id,
+                            channel_id,
+                            poll_id,
+                            pretty_poll_type(poll_type),
+                            get_emoji_name_from_poll_message(
+                                await channel.fetch_message(message_id)
+                            ),
                         )
+                    )
+    # put together and post update message
+    for channel_id, polls in channels_to_polls.items():
         if len(polls) > 0:
+            channel = client.get_channel(channel_id)
             message = "Here's an update on currently active polls:\n"
             while len(message) < 2000 and len(polls) > 0:
                 try:
