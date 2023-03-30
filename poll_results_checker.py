@@ -299,6 +299,7 @@ async def post_update():
                         message = ""
                 except IndexError:
                     await channel_to_post_to.send(message)
+            await channel_to_post_to.send(message)
 
 
 @client.event
