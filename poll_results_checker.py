@@ -286,19 +286,19 @@ async def post_update():
                         )
                     )
     # put together and post update message
-    for channel_id, polls in channels_to_polls.items():
+    for channel_id_to_post_to, polls in channels_to_polls.items():
         if len(polls) > 0:
-            channel = client.get_channel(channel_id)
+            channel_to_post_to = client.get_channel(channel_id_to_post_to)
             message = "Here's an update on currently active polls:\n"
             while len(message) < 2000 and len(polls) > 0:
                 try:
                     if len(message + polls[0]) < 2000:
                         message += polls.pop(0)
                     else:
-                        await channel.send(message)
+                        await channel_to_post_to.send(message)
                         message = ""
                 except IndexError:
-                    await channel.send(message)
+                    await channel_to_post_to.send(message)
 
 
 @client.event
