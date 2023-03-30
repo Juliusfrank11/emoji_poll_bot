@@ -271,7 +271,7 @@ async def post_update():
             if len(os.listdir(f"active_polls/{guild_id}/{channel_id}")) > 0:
                 channel_id = int(channel_id)
                 channels_to_polls[channel_id] = []
-                channel = client.get_channel()
+                channel = client.get_channel(channel_id)
                 for poll in os.listdir(f"active_polls/{guild_id}/{channel_id}"):
                     poll_id, poll_type = poll.split("_")
                     channels_to_polls[channel_id].append(
