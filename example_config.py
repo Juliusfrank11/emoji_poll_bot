@@ -36,3 +36,10 @@ ALLOWED_CHANNEL_IDS = [
 PROTECTED_EMOTE_NAMES = []
 # Hours to post poll updates, in UTC
 POLL_UPDATE_POST_TIMES = []
+
+
+# Function to Determine how Nitro Booster Voting Weight scales with # months
+# The end weight will be 1 + NITRO_USER_VOTING_WEIGHT_FUNCTION(months_boosting)
+def NITRO_USER_VOTING_WEIGHT_FUNCTION(days_boosting):
+    # no weight
+    return 0

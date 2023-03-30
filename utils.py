@@ -1,3 +1,4 @@
+import datetime as dt
 import os
 import re
 from io import BytesIO
@@ -7,6 +8,7 @@ import requests
 from PIL import Image
 
 from config import MINIMUM_VOTES_FOR_POLL
+from config import NITRO_USER_VOTING_WEIGHT_FUNCTION
 from config import POLL_NO_EMOJI
 from config import POLL_PASS_THRESHOLD
 from config import POLL_YES_EMOJI
@@ -59,6 +61,11 @@ async def get_votes(message: discord.Message, self_bot_id: int):
                     continue
                 elif user.id in PRIVILEGED_USER_IDS:
                     yes_count += 1 * PRIVILEGED_USER_VOTE_WEIGHT
+                elif user.premium_since is not None:
+                    days_boosting = abs(
+                        (dt.datetime.utcnow() - user.premium_since).days
+                    )
+                    yes_count += 1 + NITRO_USER_VOTING_WEIGHT_FUNCTION(days_boosting)
                 else:
                     yes_count += 1
         elif reaction.emoji == POLL_NO_EMOJI:
