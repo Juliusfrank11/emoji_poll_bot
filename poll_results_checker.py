@@ -287,6 +287,7 @@ async def post_update():
                     )
     # put together and post update message
     for channel_id_to_post_to, polls in channels_to_polls.items():
+        print(polls)
         if len(polls) > 0:
             channel_to_post_to = client.get_channel(channel_id_to_post_to)
             message = "Here's an update on currently active polls:\n"
