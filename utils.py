@@ -42,12 +42,13 @@ def validate_image_url(url: str):
     return re.match(r"^https?://.+?\.(png|jpg|jpeg|PNG|JPG|JPEG)$", url) is not None
 
 
-async def get_votes(message: discord.Message, self_bot_id: int):
+async def get_votes(message: discord.Message, self_bot_id: int,guild: discord.Guild):
     """Get the votes for a poll
 
     Args:
         message (discord.Message): message object of the poll
         self_bot_id (int): ID of the bot running the check (to ignore its own reactions)
+        guild (discord.guild): Guild object representing the server
 
     Returns:
         int, int: (weighted) number of votes for and number of votes against
@@ -60,15 +61,17 @@ async def get_votes(message: discord.Message, self_bot_id: int):
                 if user.id == self_bot_id:
                     continue
                 elif user.id in PRIVILEGED_USER_IDS:
-                    yes_count += 1 * PRIVILEGED_USER_VOTE_WEIGHT
-                elif type(user) == discord.Member:
-                    if user.premium_since is not None:
-                        days_boosting = abs(
-                            (dt.datetime.utcnow() - user.premium_since).days
-                        )
-                        yes_count += 1 + NITRO_USER_VOTING_WEIGHT_FUNCTION(days_boosting)
+                    yes_count += 1 + PRIVILEGED_USER_VOTE_WEIGHT
                 else:
                     yes_count += 1
+                member = guild.get_member(user.id)
+                if member is not None:
+                    if member.premium_since is not None:
+                        yes_count += NITRO_USER_VOTING_WEIGHT_FUNCTION(
+                            abs(
+                                (dt.datetime.utcnow() - member.premium_since).days
+                            )
+                        )
         elif reaction.emoji == POLL_NO_EMOJI:
             async for user in reaction.users():
                 if user.id == self_bot_id:
@@ -77,6 +80,14 @@ async def get_votes(message: discord.Message, self_bot_id: int):
                     no_count += 1 * PRIVILEGED_USER_VOTE_WEIGHT
                 else:
                     no_count += 1
+                member = guild.get_member(user.id)
+                if member is not None:
+                    if member.premium_since is not None:
+                        no_count += NITRO_USER_VOTING_WEIGHT_FUNCTION(
+                            abs(
+                                (dt.datetime.utcnow() - member.premium_since).days
+                            )
+                        )
     return (yes_count, no_count)
 
 
