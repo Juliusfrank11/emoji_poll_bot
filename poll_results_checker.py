@@ -1,5 +1,4 @@
 import asyncio
-import copy
 import datetime as dt
 import logging
 import os
