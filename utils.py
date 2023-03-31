@@ -77,7 +77,7 @@ async def get_votes(message: discord.Message, self_bot_id: int,guild: discord.Gu
                 if user.id == self_bot_id:
                     continue
                 elif user.id in PRIVILEGED_USER_IDS:
-                    no_count += 1 * PRIVILEGED_USER_VOTE_WEIGHT
+                    no_count += 1 + PRIVILEGED_USER_VOTE_WEIGHT
                 else:
                     no_count += 1
                 member = guild.get_member(user.id)
