@@ -36,6 +36,7 @@ if "active_polls" not in os.listdir():
 # used to get poll results
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True
 client = discord.Client(intents=intents)
 
 # clean existing images
@@ -370,6 +371,9 @@ async def on_ready():
             await post_update()
             last_update_hour = hour_right_now
 
+
+        async for member in client.get_all_members():
+            print(member.name,member.premium_since)
         await asyncio.sleep(WAIT_TIME_BETWEEN_CHECKS)
 
 
