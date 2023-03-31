@@ -372,8 +372,6 @@ async def on_ready():
             last_update_hour = hour_right_now
 
 
-        async for member in client.get_all_members():
-            print(member.name,member.premium_since)
         await asyncio.sleep(WAIT_TIME_BETWEEN_CHECKS)
 
 
