@@ -69,7 +69,7 @@ async def get_votes(message: discord.Message, self_bot_id: int,guild: discord.Gu
                     if member.premium_since is not None:
                         yes_count += NITRO_USER_VOTING_WEIGHT_FUNCTION(
                             abs(
-                                (dt.datetime.utc(dt.timezone.utc) - member.premium_since).days
+                                (dt.datetime.now(dt.timezone.utc) - member.premium_since).days
                             )
                         )
         elif reaction.emoji == POLL_NO_EMOJI:
