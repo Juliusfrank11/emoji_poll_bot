@@ -147,14 +147,14 @@ async def get_print_string_for_poll_result(
     if poll_passed:
         return (
             poll_short_title
-            + f"Poll passed with {yes_count} vote(s) for and {no_count} vote(s) against, leading to a {result} show in favor, above the threshold of "
+            + f"Poll passed with {round(yes_count,2)} vote(s) for and {round(no_count,2)} vote(s) against, leading to a {result} show in favor, above the threshold of "
             + display_percent_str(POLL_PASS_THRESHOLD)
             + " needed to pass."
         )
     else:
         return (
             poll_short_title
-            + f"Poll failed with {yes_count} vote(s) for and {no_count} vote(s) against, leading to a {result} show in favor, below the threshold of "
+            + f"Poll failed with {round(yes_count,2)} vote(s) for and {round(no_count,2)} vote(s) against, leading to a {result} show in favor, below the threshold of "
             + display_percent_str(POLL_PASS_THRESHOLD)
             + " needed to pass."
         )
