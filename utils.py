@@ -141,7 +141,7 @@ async def get_print_string_for_poll_result(
     if yes_count is None and no_count is None:
         yes_count, no_count = await get_votes(message, self_bot_id, message.guild)
     if yes_count + no_count < MINIMUM_VOTES_FOR_POLL or yes_count + no_count == 0:
-        return f"Poll didn't reach the minimum number of votes ({MINIMUM_VOTES_FOR_POLL}) to pass. Had only {yes_count + no_count} vote(s)."
+        return f"Poll didn't reach the minimum number of votes ({MINIMUM_VOTES_FOR_POLL}) to pass. Had only {round(yes_count + no_count,2)} vote(s)."
     result = display_percent_str(yes_count / (yes_count + no_count))
     poll_passed = await get_poll_result(message, self_bot_id)
     if poll_passed:
