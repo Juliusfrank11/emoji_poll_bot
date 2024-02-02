@@ -339,6 +339,8 @@ def check_if_user_reach_poll_limit(guild_id, channel_id, user_id):
     """
     id_counter_dict = count_poll_creator_ids(guild_id, channel_id)
 
+    print(count_poll_creator_ids(guild_id, channel_id))
+
     try:
         return id_counter_dict[user_id] >= ACTIVE_POLLS_PER_USER_LIMIT
     except KeyError:
