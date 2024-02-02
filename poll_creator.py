@@ -92,7 +92,8 @@ async def check_user_reached_limit(ctx: interactions.CommandContext):
 
     if check_if_user_reach_poll_limit(guild_id, ctx.channel_id, int(ctx.user.id)):
         await ctx.send(
-            f"You have reached the limit of number of active polls per user, {ACTIVE_POLLS_PER_USER_LIMIT}"
+            f"You have reached the limit of number of active polls per user, {ACTIVE_POLLS_PER_USER_LIMIT}",
+            ephemeral=True,
         )
         return True
     else:
