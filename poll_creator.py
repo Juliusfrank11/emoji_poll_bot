@@ -180,7 +180,7 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
-    if not await check_user_reached_limit(ctx):
+    if await check_user_reached_limit(ctx):
         return
 
     if not await check_emoji_is_modifiable(emoji_name, ctx):
@@ -273,7 +273,7 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
-    if not await check_user_reached_limit(ctx):
+    if await check_user_reached_limit(ctx):
         return
     if not await check_emoji_is_modifiable(sticker_name, ctx):
         return
@@ -354,7 +354,7 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
-    if not await check_user_reached_limit(ctx):
+    if await check_user_reached_limit(ctx):
         return
 
     if not await check_emoji_is_modifiable(emoji_name, ctx):
@@ -410,7 +410,7 @@ async def delete_sticker(ctx: interactions.CommandContext, **kwargs):
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
-    if not await check_user_reached_limit(ctx):
+    if await check_user_reached_limit(ctx):
         return
 
     if not await check_emoji_is_modifiable(sticker_name, ctx):
@@ -472,7 +472,7 @@ async def rename_emoji(ctx: interactions.CommandContext, **kwargs):
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
-    if not await check_user_reached_limit(ctx):
+    if await check_user_reached_limit(ctx):
         return
 
     if not await check_emoji_is_modifiable(current_name, ctx):
@@ -540,7 +540,7 @@ async def rename_sticker(ctx: interactions.CommandContext, **kwargs):
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
-    if not await check_user_reached_limit(ctx):
+    if await check_user_reached_limit(ctx):
         return
 
     if not await check_emoji_is_modifiable(current_name, ctx):
@@ -604,7 +604,7 @@ async def change_emoji(ctx: interactions.CommandContext, **kwargs):
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
-    if not await check_user_reached_limit(ctx):
+    if await check_user_reached_limit(ctx):
         return
 
     if not await check_emoji_is_modifiable(emoji_name, ctx):
@@ -671,7 +671,7 @@ async def change_sticker(ctx: interactions.CommandContext, **kwargs):
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
-    if not await check_user_reached_limit(ctx):
+    if await check_user_reached_limit(ctx):
         return
 
     if not await check_emoji_is_modifiable(sticker_name, ctx):
