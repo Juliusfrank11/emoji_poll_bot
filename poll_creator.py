@@ -106,7 +106,7 @@ def save_poll_to_memory(guild_id, channel_id, message_id, user_id, poll_type):
         guild_id (int): ID of guild
         channel_id (int): ID of channel
         message_id (int): ID of message
-        user_id (int): ID of poll creator
+        user_id (Snowflake): ID of poll creator
         poll_type (str): type of poll
     """
     try:
@@ -122,7 +122,7 @@ def save_poll_to_memory(guild_id, channel_id, message_id, user_id, poll_type):
         f"active_polls/{guild_id}/{channel_id}/{message_id}_{poll_type}",
         "w",
     ) as f:
-        f.write(user_id)
+        f.write(str(user_id))
 
 
 async def create_poll_message(ctx, title, description, url=None, image_url=None):
@@ -380,6 +380,7 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
 
     # save poll to active_polls directory
     poll_channel = await ctx.get_channel()
+    print(ctx.user.id)
     save_poll_to_memory(
         poll_channel.guild_id, poll_channel.id, poll_id, ctx.user.id, "deleteemoji"
     )
