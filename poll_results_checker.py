@@ -319,7 +319,9 @@ async def on_ready():
                     dt.datetime.now(dt.timezone.utc) - message.created_at
                 ).total_seconds() > POLL_DURATION:
                     yes_count, no_count = await get_votes(
-                        message, self_bot_id=client.user.id, guild = client.get_guild(guild_id)
+                        message,
+                        self_bot_id=client.user.id,
+                        guild=client.get_guild(guild_id),
                     )
                     await channel.send(
                         await get_print_string_for_poll_result(
@@ -369,7 +371,6 @@ async def on_ready():
         ):
             await post_update()
             last_update_hour = hour_right_now
-
 
         await asyncio.sleep(WAIT_TIME_BETWEEN_CHECKS)
 

@@ -2,20 +2,20 @@ import os
 
 import interactions
 
+from config import ACTIVE_POLLS_PER_USER_LIMIT
 from config import ALLOWED_CHANNEL_IDS
 from config import POLL_NO_EMOJI
 from config import POLL_YES_EMOJI
 from config import PROTECTED_EMOTE_NAMES
 from config import TOKEN_FILE_NAME
-from config import ACTIVE_POLLS_PER_USER_LIMIT
+from utils import check_if_user_reach_poll_limit
 from utils import display_percent_str
 from utils import extract_emoji_name_from_syntax
-from utils import pretty_poll_type
 from utils import get_emoji_formatted_str
 from utils import get_existing_emoji_by_name
+from utils import pretty_poll_type
 from utils import validate_emoji_name
 from utils import validate_image_url
-from utils import check_if_user_reach_poll_limit
 
 
 # Setup
@@ -380,7 +380,6 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
 
     # save poll to active_polls directory
     poll_channel = await ctx.get_channel()
-    print(ctx.user.id)
     save_poll_to_memory(
         poll_channel.guild_id, poll_channel.id, poll_id, ctx.user.id, "deleteemoji"
     )

@@ -1,13 +1,14 @@
 import datetime as dt
 import os
 import re
-from io import BytesIO
 from collections import Counter
+from io import BytesIO
 
 import discord
 import requests
 from PIL import Image
 
+from config import ACTIVE_POLLS_PER_USER_LIMIT
 from config import MINIMUM_VOTES_FOR_POLL
 from config import NITRO_USER_VOTING_WEIGHT_FUNCTION
 from config import POLL_NO_EMOJI
@@ -16,7 +17,6 @@ from config import POLL_YES_EMOJI
 from config import PRIVILEGED_USER_IDS
 from config import PRIVILEGED_USER_VOTE_WEIGHT
 from config import TEMP_IMAGE_FILE_NAME
-from config import ACTIVE_POLLS_PER_USER_LIMIT
 
 
 def validate_emoji_name(name: str):
@@ -338,8 +338,6 @@ def check_if_user_reach_poll_limit(guild_id, channel_id, user_id):
         bool: True if reached the limit
     """
     id_counter_dict = count_poll_creator_ids(guild_id, channel_id)
-
-    print(count_poll_creator_ids(guild_id, channel_id))
 
     try:
         return id_counter_dict[user_id] >= ACTIVE_POLLS_PER_USER_LIMIT
