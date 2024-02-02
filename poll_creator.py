@@ -86,7 +86,7 @@ async def check_emoji_is_modifiable(emoji_name, ctx):
 
 
 async def check_user_reached_limit(ctx: interactions.CommandContext):
-    guild = ctx.get_guild()
+    guild = await ctx.get_guild()
 
     guild_id = guild.id
 
