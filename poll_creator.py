@@ -7,6 +7,7 @@ from config import POLL_NO_EMOJI
 from config import POLL_YES_EMOJI
 from config import PROTECTED_EMOTE_NAMES
 from config import TOKEN_FILE_NAME
+from config import ACTIVE_POLLS_PER_USER_LIMIT
 from utils import display_percent_str
 from utils import extract_emoji_name_from_syntax
 from utils import pretty_poll_type
@@ -14,6 +15,8 @@ from utils import get_emoji_formatted_str
 from utils import get_existing_emoji_by_name
 from utils import validate_emoji_name
 from utils import validate_image_url
+from utils import check_if_user_reach_poll_limit
+
 
 # Setup
 ## read token from file
@@ -82,13 +85,28 @@ async def check_emoji_is_modifiable(emoji_name, ctx):
         return True
 
 
-def save_poll_to_memory(guild_id, channel_id, message_id, poll_type):
+async def check_user_reached_limit(ctx: interactions.CommandContext):
+    guild = ctx.get_guild()
+
+    guild_id = guild.id
+
+    if check_if_user_reach_poll_limit(guild_id, ctx.channel_id, ctx.user.id):
+        await ctx.send(
+            f"You have reached the limit of number of active polls per user, {ACTIVE_POLLS_PER_USER_LIMIT}"
+        )
+        return True
+    else:
+        return False
+
+
+def save_poll_to_memory(guild_id, channel_id, message_id, user_id, poll_type):
     """Save a poll to memory
 
     Args:
         guild_id (int): ID of guild
         channel_id (int): ID of channel
         message_id (int): ID of message
+        user_id (int): ID of poll creator
         poll_type (str): type of poll
     """
     try:
@@ -100,11 +118,11 @@ def save_poll_to_memory(guild_id, channel_id, message_id, poll_type):
             os.mkdir(f"active_polls/{guild_id}/{channel_id}")
         except FileExistsError:
             pass
-    f = open(
+    with open(
         f"active_polls/{guild_id}/{channel_id}/{message_id}_{poll_type}",
         "w",
-    )
-    f.close()
+    ) as f:
+        f.write(user_id)
 
 
 async def create_poll_message(ctx, title, description, url=None, image_url=None):
@@ -162,6 +180,9 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
+    if not await check_user_reached_limit(ctx.user.id, ctx):
+        return
+
     if not await check_emoji_is_modifiable(emoji_name, ctx):
         return
 
@@ -212,7 +233,9 @@ async def add_emoji(ctx: interactions.CommandContext, **kwargs):
 
     # save poll to active_polls directory
     poll_channel = await ctx.get_channel()
-    save_poll_to_memory(poll_channel.guild_id, poll_channel.id, poll_id, "addemoji")
+    save_poll_to_memory(
+        poll_channel.guild_id, poll_channel.id, poll_id, ctx.user.id, "addemoji"
+    )
 
 
 @bot.command(
@@ -249,6 +272,8 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
     sticker_url = kwargs["url"]
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
+        return
+    if not await check_user_reached_limit(ctx.user.id, ctx):
         return
     if not await check_emoji_is_modifiable(sticker_name, ctx):
         return
@@ -299,7 +324,9 @@ async def add_sticker(ctx: interactions.CommandContext, **kwargs):
 
     # save poll to active_polls directory
     poll_channel = await ctx.get_channel()
-    save_poll_to_memory(poll_channel.guild_id, poll_channel.id, poll_id, "addsticker")
+    save_poll_to_memory(
+        poll_channel.guild_id, poll_channel.id, poll_id, ctx.user.id, "addsticker"
+    )
 
 
 @bot.command(
@@ -327,6 +354,9 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
+    if not await check_user_reached_limit(ctx.user.id, ctx):
+        return
+
     if not await check_emoji_is_modifiable(emoji_name, ctx):
         return
 
@@ -350,7 +380,9 @@ async def delete_emoji(ctx: interactions.CommandContext, **kwargs):
 
     # save poll to active_polls directory
     poll_channel = await ctx.get_channel()
-    save_poll_to_memory(poll_channel.guild_id, poll_channel.id, poll_id, "deleteemoji")
+    save_poll_to_memory(
+        poll_channel.guild_id, poll_channel.id, poll_id, ctx.user.id, "deleteemoji"
+    )
 
 
 @bot.command(
@@ -378,6 +410,9 @@ async def delete_sticker(ctx: interactions.CommandContext, **kwargs):
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
+    if not await check_user_reached_limit(ctx.user.id, ctx):
+        return
+
     if not await check_emoji_is_modifiable(sticker_name, ctx):
         return
 
@@ -400,7 +435,7 @@ async def delete_sticker(ctx: interactions.CommandContext, **kwargs):
     # save poll to active_polls directory
     poll_channel = await ctx.get_channel()
     save_poll_to_memory(
-        poll_channel.guild_id, poll_channel.id, poll_id, "deletesticker"
+        poll_channel.guild_id, poll_channel.id, poll_id, ctx.user.id, "deletesticker"
     )
 
 
@@ -437,6 +472,9 @@ async def rename_emoji(ctx: interactions.CommandContext, **kwargs):
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
+    if not await check_user_reached_limit(ctx.user.id, ctx):
+        return
+
     if not await check_emoji_is_modifiable(current_name, ctx):
         return
 
@@ -464,7 +502,9 @@ async def rename_emoji(ctx: interactions.CommandContext, **kwargs):
     )
 
     poll_channel = await ctx.get_channel()
-    save_poll_to_memory(poll_channel.guild_id, poll_channel.id, poll_id, "renameemoji")
+    save_poll_to_memory(
+        poll_channel.guild_id, poll_channel.id, poll_id, ctx.user.id, "renameemoji"
+    )
 
 
 @bot.command(
@@ -500,6 +540,9 @@ async def rename_sticker(ctx: interactions.CommandContext, **kwargs):
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
+    if not await check_user_reached_limit(ctx.user.id, ctx):
+        return
+
     if not await check_emoji_is_modifiable(current_name, ctx):
         return
 
@@ -523,7 +566,9 @@ async def rename_sticker(ctx: interactions.CommandContext, **kwargs):
     )
 
     channel = await ctx.get_channel()
-    save_poll_to_memory(channel.guild_id, channel.id, poll_id, "renamesticker")
+    save_poll_to_memory(
+        channel.guild_id, channel.id, poll_id, ctx.user.id, "renamesticker"
+    )
 
 
 @bot.command(
@@ -559,6 +604,9 @@ async def change_emoji(ctx: interactions.CommandContext, **kwargs):
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
+    if not await check_user_reached_limit(ctx.user.id, ctx):
+        return
+
     if not await check_emoji_is_modifiable(emoji_name, ctx):
         return
 
@@ -585,7 +633,9 @@ async def change_emoji(ctx: interactions.CommandContext, **kwargs):
     )
 
     poll_channel = await ctx.get_channel()
-    save_poll_to_memory(poll_channel.guild_id, poll_channel.id, poll_id, "changeemoji")
+    save_poll_to_memory(
+        poll_channel.guild_id, poll_channel.id, poll_id, ctx.user.id, "changeemoji"
+    )
 
 
 @bot.command(
@@ -621,6 +671,9 @@ async def change_sticker(ctx: interactions.CommandContext, **kwargs):
 
     if not await check_channel_is_allowed(ctx.channel_id, ctx):
         return
+    if not await check_user_reached_limit(ctx.user.id, ctx):
+        return
+
     if not await check_emoji_is_modifiable(sticker_name, ctx):
         return
 
@@ -642,7 +695,9 @@ async def change_sticker(ctx: interactions.CommandContext, **kwargs):
         image_url,
         image_url,
     )
-    save_poll_to_memory(ctx.guild_id, ctx.channel_id, poll_id, "changesticker")
+    save_poll_to_memory(
+        ctx.guild_id, ctx.channel_id, poll_id, ctx.user.id, "changesticker"
+    )
 
 
 @bot.command(
@@ -683,7 +738,11 @@ async def show_polls(ctx: interactions.CommandContext):
                 # Might need to finally migrate off interactions and make these commands properly
                 polls.append(
                     "https://discord.com/channels/{}/{}/{} {}".format(
-                        guild.id, channel_id, poll_id, pretty_poll_type(poll_type)
+                        guild.id,
+                        channel_id,
+                        poll_id,
+                        ctx.user.id,
+                        pretty_poll_type(poll_type),
                     )
                 )
     else:

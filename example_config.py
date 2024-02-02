@@ -26,7 +26,7 @@ MINIMUM_VOTES_FOR_POLL = 1
 PRIVILEGED_USER_IDS = [
     # 123456789012345678,   # Example user ID
 ]
-# How much more weight a privileged user's vote has
+# How much more weight a privileged user's vote has, multiplicative
 PRIVILEGED_USER_VOTE_WEIGHT = 1
 # Channel IDs of channels where the bot can be used
 ALLOWED_CHANNEL_IDS = [
@@ -36,6 +36,8 @@ ALLOWED_CHANNEL_IDS = [
 PROTECTED_EMOTE_NAMES = []
 # Hours to post poll updates, in UTC
 POLL_UPDATE_POST_TIMES = []
+# How many polls can be active at once per user
+ACTIVE_POLLS_PER_USER_LIMIT = 2
 
 
 # Function to Determine how Nitro Booster Voting Weight scales with # months

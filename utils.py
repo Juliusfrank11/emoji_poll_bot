@@ -2,6 +2,7 @@ import datetime as dt
 import os
 import re
 from io import BytesIO
+from collections import Counter
 
 import discord
 import requests
@@ -15,6 +16,7 @@ from config import POLL_YES_EMOJI
 from config import PRIVILEGED_USER_IDS
 from config import PRIVILEGED_USER_VOTE_WEIGHT
 from config import TEMP_IMAGE_FILE_NAME
+from config import ACTIVE_POLLS_PER_USER_LIMIT
 
 
 def validate_emoji_name(name: str):
@@ -42,7 +44,7 @@ def validate_image_url(url: str):
     return re.match(r"^https?://.+?\.(png|jpg|jpeg|PNG|JPG|JPEG)$", url) is not None
 
 
-async def get_votes(message: discord.Message, self_bot_id: int,guild: discord.Guild):
+async def get_votes(message: discord.Message, self_bot_id: int, guild: discord.Guild):
     """Get the votes for a poll
 
     Args:
@@ -69,7 +71,10 @@ async def get_votes(message: discord.Message, self_bot_id: int,guild: discord.Gu
                     if member.premium_since is not None:
                         yes_count += NITRO_USER_VOTING_WEIGHT_FUNCTION(
                             abs(
-                                (dt.datetime.now(dt.timezone.utc) - member.premium_since).days
+                                (
+                                    dt.datetime.now(dt.timezone.utc)
+                                    - member.premium_since
+                                ).days
                             )
                         )
         elif reaction.emoji == POLL_NO_EMOJI:
@@ -85,7 +90,10 @@ async def get_votes(message: discord.Message, self_bot_id: int,guild: discord.Gu
                     if member.premium_since is not None:
                         no_count += NITRO_USER_VOTING_WEIGHT_FUNCTION(
                             abs(
-                                (dt.datetime.now(dt.timezone.utc) - member.premium_since).days
+                                (
+                                    dt.datetime.now(dt.timezone.utc)
+                                    - member.premium_since
+                                ).days
                             )
                         )
     return (yes_count, no_count)
@@ -283,3 +291,55 @@ def pretty_poll_type(poll_type):
         if name in poll_type:
             pretty_name = pretty_name.replace(name, " " + name)
     return pretty_name
+
+
+def count_poll_creator_ids(guild_id, channel_id):
+    """Gives a count of active polls created by user ids
+
+    Args:
+        guild_id (int/str): discord server id
+        channel_id (int/str): discord channel id
+
+    Returns:
+        dict[int,int]: dictionary of how many active polls each user id has created
+    """
+    id_counter = Counter()
+
+    path = f"active_polls/{guild_id}/{channel_id}"
+
+    # Iterate over every file in the directory
+    for filename in os.listdir(path):
+        file_path = os.path.join(path, filename)
+
+        # Check if the current path is a file
+        if os.path.isfile(file_path):
+            with open(file_path, "r") as file:
+                content = file.read().strip()
+
+                # Assign an ID of zero for empty files
+                if content == "":
+                    id_counter[0] += 1
+                else:
+                    # Assume the file contains a single numeric ID
+                    id_counter[int(content)] += 1
+
+    return dict(id_counter)
+
+
+def check_if_user_reach_poll_limit(guild_id, channel_id, user_id):
+    """Check if a user has reach the limit on active polls they can make at a time
+
+    Args:
+        guild_id (int/str): discord server id
+        channel_id (int/str): discord channel id
+        user_id (int): id of the user to check
+
+    Returns:
+        bool: True if reached the limit
+    """
+    id_counter_dict = count_poll_creator_ids(guild_id, channel_id)
+
+    try:
+        return id_counter_dict[user_id] >= ACTIVE_POLLS_PER_USER_LIMIT
+    except KeyError:
+        return False
